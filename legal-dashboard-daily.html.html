@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المتابعة القانونية</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#1B2E4B;--navy2:#243d61;--gold:#C9A84C;--bg:#F0F2F5;
+  --white:#fff;--text:#1a1a2e;--muted:#6b7280;
+  --danger:#dc2626;--success:#16a34a;--warning:#d97706;--info:#2563eb;--border:#e2e8f0;
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.logo-text{color:#fff;font-size:15px;font-weight:700;line-height:1.2}
+.logo-sub{color:var(--gold);font-size:10px}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-date{color:#94a3b8;font-size:12px}
+.notif-btn{position:relative;background:rgba(255,255,255,.1);border:none;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:18px;color:#fff;transition:background .2s}
+.notif-btn:hover{background:rgba(255,255,255,.2)}
+.notif-badge{position:absolute;top:3px;left:3px;background:var(--danger);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;font-family:'Cairo',sans-serif}
+
+#globalSearch{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;font-size:12px;color:#fff;font-family:'Cairo',sans-serif;width:170px;outline:none;transition:width .2s, background .2s}
+#globalSearch::placeholder{color:#94a3b8}
+#globalSearch:focus{width:230px;background:rgba(255,255,255,.18)}
+.search-results{display:none;position:absolute;top:38px;left:0;width:340px;max-width:80vw;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.25);z-index:310;max-height:420px;overflow-y:auto}
+.search-results.open{display:block}
+.search-result-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:#f8fafc}
+.sr-title{font-size:13px;font-weight:700;color:var(--navy)}
+.sr-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.sr-cat{font-size:10px;background:#eef2f7;color:var(--navy);padding:1px 7px;border-radius:8px;font-weight:700}
+.search-results-empty{padding:18px;text-align:center;color:var(--muted);font-size:12px}
+
+/* NOTIF PANEL */
+.notif-panel{display:none;position:fixed;top:66px;left:16px;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.2);z-index:300;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-ph{background:var(--navy);color:#fff;padding:13px 16px;font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.notif-close{background:none;border:none;color:#fff;cursor:pointer;font-size:17px}
+.notif-item{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.notif-item:last-child{border-bottom:none}
+.notif-empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto}
+.tab{padding:13px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .2s;font-family:'Cairo',sans-serif;background:none;border-top:none;border-right:none;border-left:none}
+.tab:hover{color:var(--navy)}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+
+/* MAIN */
+.main{padding:20px 24px;max-width:1200px;margin:0 auto}
+.section{display:none}.section.active{display:block}
+.section-title{font-size:20px;font-weight:900;color:var(--navy);margin-bottom:18px}
+.sub-title{font-size:15px;font-weight:800;color:var(--navy);margin:26px 0 10px}
+.sub-title:first-child{margin-top:0}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:12px;padding:18px;border-right:4px solid var(--gold);box-shadow:0 1px 4px rgba(0,0,0,.06);transition:transform .15s, box-shadow .15s}
+.stat-card[onclick]{cursor:pointer}
+.stat-card[onclick]:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.stat-card.danger{border-right-color:var(--danger)}.stat-card.success{border-right-color:var(--success)}.stat-card.info{border-right-color:var(--info)}.stat-card.warning{border-right-color:var(--warning)}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.stat-num{font-size:30px;font-weight:900;color:var(--navy);line-height:1}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.stat-pct{font-size:12px;font-weight:700;margin-top:4px}
+.pct-green{color:var(--success)}.pct-red{color:var(--danger)}.pct-yellow{color:var(--warning)}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.chart-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px}
+.chart-wrap{position:relative;height:200px}
+
+/* CARDS */
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;margin-bottom:18px}
+.card-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.card-title{font-size:14px;font-weight:700;color:var(--navy)}
+.btn-add{background:var(--navy);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:background .2s}
+.btn-add:hover{background:var(--navy2)}
+
+/* TABLE */
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc;padding:11px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-done{background:#dcfce7;color:#166534}
+.badge-urgent{background:#fee2e2;color:#991b1b}
+.badge-progress{background:#dbeafe;color:#1e40af}
+.badge-late{background:#fce7f3;color:#9d174d}
+
+/* EMAIL */
+.email-item{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-bottom:1px solid #f1f5f9;transition:background .15s}
+.email-item:hover{background:#f8fafc}
+.email-item:last-child{border-bottom:none}
+.email-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.email-meta{flex:1}
+.email-from{font-weight:700;font-size:13px;color:var(--navy)}
+.email-subject{font-size:12px;color:var(--muted);margin-top:2px}
+.email-time{font-size:11px;color:#9ca3af;margin-top:3px}
+.email-status{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.replied-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px}
+.tag-no{background:#fee2e2;color:#dc2626}
+.tag-yes{background:#dcfce7;color:#16a34a}
+.tag-waiting{background:#fef3c7;color:#d97706}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--gold)}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:5px}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Cairo',sans-serif;color:var(--text);outline:none;transition:border-color .2s;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--navy)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.btn-save{background:var(--navy);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif}
+.btn-cancel{background:var(--bg);color:var(--navy);border:1.5px solid var(--border);padding:9px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif}
+.action-btn{background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:6px;font-size:12px;color:var(--muted);font-family:'Cairo',sans-serif;transition:background .15s}
+.action-btn:hover{background:var(--bg);color:var(--navy)}
+.action-btn.del:hover{background:#fee2e2;color:var(--danger)}
+.action-btn.done-btn:hover{background:#dcfce7;color:var(--success)}
+.action-btn.attach-btn:hover{background:#eef2ff;color:#4338ca}
+.attach-dropzone{border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;margin-bottom:14px}
+.attach-dropzone:hover{background:#f8fafc;border-color:var(--gold)}
+.attach-dropzone.dragover{background:#fdf7e8;border-color:var(--gold)}
+.attach-hint{font-size:11px;color:var(--muted);margin-top:4px}
+.attach-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:#fafbfc}
+.attach-thumb{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#eef2f7}
+.attach-icon{width:38px;height:38px;border-radius:8px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.attach-info{flex:1;min-width:0}
+.attach-name{font-size:12.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.attach-size{font-size:11px;color:var(--muted)}
+.attach-actions{display:flex;gap:4px}
+.lightbox-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox-overlay.open{display:flex}
+.lightbox-overlay img{max-width:92vw;max-height:92vh;border-radius:8px}
+.empty-state{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+
+/* UPDATES LOG */
+.update-row{padding:8px 0;border-bottom:1px solid #f1f5f9}
+.update-row:last-child{border-bottom:none}
+.update-date{font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600}
+.update-text{font-size:13px;color:var(--text);white-space:pre-wrap}
+
+/* REPORT BOX */
+.report-box{background:var(--navy);color:#fff;border-radius:12px;padding:18px 22px;margin-bottom:18px}
+.report-box h3{font-size:15px;font-weight:700;margin-bottom:4px;color:var(--gold)}
+.report-box p{font-size:12px;color:#94a3b8;margin-bottom:14px}
+.report-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-report{display:flex;align-items:center;gap:5px;padding:9px 16px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;border:none;transition:opacity .2s}
+.btn-report:hover{opacity:.85}
+.btn-whatsapp{background:#25D366;color:#fff}
+.btn-copy{background:var(--gold);color:var(--navy)}
+.btn-weekly{background:#7c3aed;color:#fff}
+.report-preview{background:#f8fafc;border-radius:9px;padding:14px;font-size:12px;line-height:1.8;color:var(--text);margin-bottom:18px;white-space:pre-wrap;direction:rtl;border:1px solid var(--border);max-height:280px;overflow-y:auto;display:none}
+
+/* NOTIF ENABLE BAR */
+.notif-enable-bar{background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.notif-enable-text{font-size:12px;color:#0369a1;font-weight:600}
+.btn-enable-notif{background:#0369a1;color:#fff;border:none;padding:6px 13px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;white-space:nowrap}
+
+/* PROGRESS BAR */
+.progress-wrap{margin-top:6px}
+.progress-bar-bg{background:#e5e7eb;border-radius:10px;height:8px;overflow:hidden}
+.progress-bar-fill{height:8px;border-radius:10px;transition:width .5s}
+
+/* Touch active feedback */
+.btn-add:active,.btn-save:active,.btn-report:active,.action-btn:active,.tab:active{
+  opacity:0.7;transform:scale(0.97)
+}
+.stat-card[onclick]:active{transform:scale(0.97);opacity:0.85}
+.lawyer-card{background:#fff;border-radius:12px;padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-right:4px solid var(--gold)}
+.lawyer-name{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.lawyer-stats{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:10px}
+.lstat{display:flex;align-items:center;gap:4px;font-weight:600}
+
+@media(max-width:640px){
+  .main{padding:12px 10px}
+  .tabs{padding:0 8px;-webkit-overflow-scrolling:touch}
+  .tab{padding:14px 12px;font-size:12px;min-height:48px}
+  header{padding:0 12px}
+  .header-date{display:none}
+  #globalSearch{width:110px;font-size:11px;padding:6px 8px}
+  #globalSearch:focus{width:140px}
+  .search-results{width:90vw;max-width:320px;right:-10px;left:auto}
+  .charts-row{grid-template-columns:1fr}
+  .stat-num{font-size:26px}
+  .notif-panel{width:calc(100vw - 20px);left:10px}
+
+  /* bigger touch targets for all buttons */
+  .btn-add{padding:10px 16px;font-size:13px;min-height:44px}
+  .btn-save{min-height:44px;padding:10px 20px}
+  .btn-cancel{min-height:44px;padding:10px 16px}
+  .btn-report{min-height:44px;padding:10px 16px}
+  .btn-enable-notif{min-height:40px;padding:8px 14px;font-size:12px}
+  .notif-btn{min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
+
+  /* action buttons bigger on mobile */
+  .action-btn{padding:6px 10px;font-size:14px;min-height:36px;min-width:36px}
+
+  /* tables scroll horizontally */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0 0 12px 12px}
+  table{min-width:500px}
+  td,th{padding:10px 10px;font-size:12px}
+
+  /* modal full width on mobile */
+  .modal{width:96%;padding:18px;border-radius:12px}
+  .modal-title{font-size:15px}
+  input,select,textarea{font-size:16px !important;min-height:44px;padding:10px 12px}
+  label{font-size:13px}
+
+  /* email items stack better */
+  .email-item{padding:12px 12px;gap:10px}
+  .email-status{gap:6px}
+  .action-btn{font-size:16px}
+
+  /* lawyer cards */
+  .lawyer-stats{flex-wrap:wrap;gap:8px}
+
+  /* stats grid 2 columns on mobile */
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:14px 12px}
+
+  /* section title smaller */
+  .section-title{font-size:17px;margin-bottom:14px}
+
+  /* report preview */
+  .report-preview{font-size:11px}
+
+  /* card headers stack on very small screens */
+  .card-header{flex-wrap:wrap;gap:8px}
+}
+
+.done-separator td{
+  background:#f0f4f8;
+  color:var(--muted, #6b7280);
+  font-weight:700;
+  text-align:center;
+  padding:8px;
+  font-size:12px;
+  border-top:2px solid #d8e0e8;
+  border-bottom:2px solid #d8e0e8;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚖️</div>
+    <div>
+      <div class="logo-text">لوحة المتابعة القانونية</div>
+      <div class="logo-sub">Operations Legal Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right" style="position:relative">
+    <div class="search-wrap" style="position:relative">
+      <input id="globalSearch" type="text" placeholder="🔍 ابحث عن أي مهمة..." oninput="performGlobalSearch(this.value)" onfocus="performGlobalSearch(this.value)" autocomplete="off">
+      <div id="globalSearchResults" class="search-results"></div>
+    </div>
+    <div class="header-date" id="currentDate"></div>
+    <button class="notif-btn" onclick="toggleNotifPanel()" id="notifBtn">
+      🔔<span class="notif-badge" id="notifBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- NOTIF PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-ph">
+    <span>🔔 التنبيهات</span>
+    <button class="notif-close" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div id="notifList" style="max-height:380px;overflow-y:auto">
+    <div class="notif-empty">لا توجد تنبيهات</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview" onclick="showTab('overview')">📊 نظرة عامة</button>
+  <button class="tab" data-tab="dailytasks" onclick="showTab('dailytasks')">🗓️ المهام اليومية</button>
+  <button class="tab" data-tab="emails" onclick="showTab('emails')">📧 الإيميلات</button>
+  <button class="tab" data-tab="contracts" onclick="showTab('contracts')">📄 العقود</button>
+  <button class="tab" data-tab="lawyers" onclick="showTab('lawyers')">👨‍💼 مهام المحامين</button>
+  <button class="tab" data-tab="govermind" onclick="showTab('govermind')">🏗️ مكتب Govermind</button>
+  <button class="tab" data-tab="sevendays" onclick="showTab('sevendays')">📦 مكتب 7Days</button>
+  <button class="tab" data-tab="compliance" onclick="showTab('compliance')">📁 التراخيص والجهات والتفويضات والمحاضر</button>
+</div>
+
+<div class="main">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="section active" id="section-overview">
+  <div class="section-title">📊 نظرة عامة</div>
+
+  <div class="notif-enable-bar" id="notifEnableBar">
+    <span class="notif-enable-text">🔔 فعّل إشعارات المتصفح للتنبيه بالمتأخرات تلقائياً</span>
+    <button class="btn-enable-notif" onclick="enableNotifications()">تفعيل</button>
+  </div>
+
+  <!-- SYNC BAR -->
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <span style="font-size:12px;color:#166534;font-weight:600">📲 مزامنة البيانات بين الأجهزة</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-enable-notif" style="background:#166534" onclick="exportData()">⬇️ تصدير</button>
+      <label class="btn-enable-notif" style="background:#1e40af;cursor:pointer">
+        ⬆️ استيراد
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
+    </div>
+  </div>
+
+  <div class="stats-row" id="overviewStats"></div>
+
+  <!-- FILTER RESULTS PANEL -->
+  <div id="filterPanel" style="display:none;margin-bottom:20px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="filterPanelTitle">النتائج</div>
+        <button class="btn-cancel" onclick="closeFilterPanel()" style="font-size:12px;padding:5px 12px">✕ إغلاق</button>
+      </div>
+      <div id="filterPanelBody"></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">📈 توزيع المهام الكلية</div>
+      <div class="chart-wrap"><canvas id="chartDonut"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📅 إنجاز الأسبوع الحالي</div>
+      <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📊 نسب الإنجاز حسب القسم</div></div>
+    <div id="progressSection" style="padding:16px 18px"></div>
+  </div>
+
+  <div class="report-box">
+    <h3>📋 التقارير</h3>
+    <p>ولّد تقرير يومي أو أسبوعي بكل المنجز والمتأخرات — ابعته على واتساب بضغطة</p>
+    <div class="report-actions">
+      <button class="btn-report btn-copy" onclick="generateReport('daily')">📋 تقرير اليوم</button>
+      <button class="btn-report btn-weekly" onclick="generateReport('weekly')">📅 تقرير الأسبوع</button>
+      <button class="btn-report btn-whatsapp" onclick="sendWhatsApp()">📱 إرسال واتساب</button>
+    </div>
+  </div>
+  <pre class="report-preview" id="reportPreview"></pre>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🔴 إيميلات بدون رد</div></div>
+    <div id="urgentEmailsPreview"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">⚠️ مهام عاجلة</div></div>
+    <div id="urgentTasksPreview"></div>
+  </div>
+</div>
+
+<!-- ===== DAILY TASKS / TO-DO ===== -->
+<div class="section" id="section-dailytasks">
+  <div class="section-title">🗓️ المهام اليومية</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⭐ مهامي المختارة النهارده</div>
+    </div>
+    <div id="todayPicksList" style="padding:14px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 المهام المعلقة من كل الأقسام</div>
+      <select id="dt_catFilter" onchange="renderPendingPool()" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px">
+        <option value="all">كل الأقسام</option>
+        <option value="contracts">📄 العقود</option>
+        <option value="emails">📧 الإيميلات</option>
+        <option value="lawyerTasks">👨‍💼 مهام محامين</option>
+        <option value="govermind">🏗️ Govermind</option>
+        <option value="sevendays">📦 7Days</option>
+        <option value="licenses">🏢 تراخيص</option>
+        <option value="authorities">🏛️ جهات حكومية</option>
+        <option value="poas">📋 تفويضات</option>
+        <option value="incidents">🚨 محاضر</option>
+      </select>
+    </div>
+    <div style="padding:0 18px 6px 18px;font-size:11.5px;color:var(--muted)">اضغط ☆ لإضافة المهمة لقائمة "مهامي النهارده" فوق، عشان تبقى قدام عينك وتختار منها بسهولة.</div>
+    <div id="pendingPoolList" style="padding:14px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📝 سجل يومياتي</div></div>
+    <div style="padding:16px 18px 0 18px">
+      <div class="form-group"><textarea id="dt_logText" rows="3" placeholder="سجّل اللي عملته النهاردة... مثال: راجعت عقد إيجار G-Carts وبعتّه على الإيميل، وتابعت مع هيئة الاستثمار موضوع ترخيص فرع المطرية"></textarea></div>
+      <button class="btn-save" onclick="addLogEntry()" style="margin-bottom:16px">➕ إضافة تسجيل</button>
+    </div>
+    <div id="dailyLogList" style="padding:0 18px 18px 18px"></div>
+  </div>
+</div>
+
+<!-- ===== EMAILS ===== -->
+<div class="section" id="section-emails">
+  <div class="section-title">📧 متابعة الإيميلات</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📧 سجل الإيميلات</div>
+      <button class="btn-add" onclick="openModal('emailModal')">+ إضافة إيميل</button>
+    </div>
+    <div id="emailsList"></div>
+  </div>
+</div>
+
+<!-- ===== CONTRACTS ===== -->
+<div class="section" id="section-contracts">
+  <div class="section-title">📄 العقود</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📄 سجل العقود</div>
+      <button class="btn-add" onclick="openModal('contractModal')">+ إضافة عقد</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>Subject Email</th><th>موضوع الإيميل</th><th>الطرف الأول</th><th>النوع</th><th>تاريخ استلام الإيميل</th><th>الديدلاين</th><th>تاريخ الانجاز وارسال العقد اول مرة على الايميل</th><th>الحالة</th><th>ملاحظات</th><th>إجراء</th>
+      </tr></thead>
+      <tbody id="contractsTable"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LAWYERS ===== -->
+<div class="section" id="section-lawyers">
+  <div class="section-title">👨‍💼 مهام المحامين</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📌 قائمة المهام المفوضة</div>
+      <button class="btn-add" onclick="openModal('lawyerModal')">+ إضافة مهمة</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>المحامي</th><th>المهمة</th><th>التفاصيل</th><th>تاريخ التكليف</th><th>الديدلاين</th><th>تاريخ التنفيذ</th><th>تاريخ الانتهاء من المهمة</th><th>الحالة</th><th>إجراء</th>
+      </tr></thead>
+      <tbody id="lawyersTable"></tbody>
+    </table>
+    </div>
+  </div>
+  <div id="lawyerCards"></div>
+</div>
+
+<!-- ===== GOVERMIND ===== -->
+<div class="section" id="section-govermind">
+  <div class="section-title">🏗️ متابعة مكتب Govermind</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📌 قائمة المهام المفوضة لمكتب Govermind</div>
+      <button class="btn-add" onclick="openModal('govermindModal')">+ إضافة مهمة</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>المسؤول</th><th>المهمة</th><th>التفاصيل</th><th>تاريخ التكليف</th><th>الديدلاين</th><th>تاريخ التنفيذ</th><th>الحالة</th><th>إجراء</th>
+      </tr></thead>
+      <tbody id="govermindTable"></tbody>
+    </table>
+    </div>
+  </div>
+  <div id="govermindCards"></div>
+</div>
+
+<!-- ===== 7DAYS ===== -->
+<div class="section" id="section-sevendays">
+  <div class="section-title">📦 متابعة مكتب 7Days</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📌 قائمة المهام المفوضة لمكتب 7Days</div>
+      <button class="btn-add" onclick="openModal('sevendaysModal')">+ إضافة مهمة</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>المسؤول</th><th>المهمة</th><th>التفاصيل</th><th>تاريخ التكليف</th><th>الديدلاين</th><th>تاريخ التنفيذ</th><th>الحالة</th><th>إجراء</th>
+      </tr></thead>
+      <tbody id="sevendaysTable"></tbody>
+    </table>
+    </div>
+  </div>
+  <div id="sevendaysCards"></div>
+</div>
+
+<!-- ===== COMPLIANCE (LICENSES + AUTHORITIES + POA + INCIDENTS) ===== -->
+<div class="section" id="section-compliance">
+  <div class="section-title">📁 التراخيص، الجهات الحكومية، التفويضات والمحاضر</div>
+
+  <div class="sub-title">🏢 تراخيص الفروع</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏢 سجل الفروع</div>
+      <button class="btn-add" onclick="openModal('licenseModal')">+ إضافة فرع</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>الفرع</th><th>الموقع</th><th>نوع الترخيص</th><th>تاريخ الانتهاء</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="licensesTable"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="sub-title">🏛️ الجهات الحكومية</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏛️ متابعة الجهات</div>
+      <button class="btn-add" onclick="openModal('authorityModal')">+ إضافة متابعة</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>الجهة</th><th>الموضوع</th><th>الفرع</th><th>آخر متابعة</th><th>الموعد القادم</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="authoritiesTable"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="sub-title">📋 التفويضات</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 سجل التفويضات</div>
+      <button class="btn-add" onclick="openModal('poaModal')">+ إضافة تفويض</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>المفوَّض</th><th>الإدارة</th><th>الصلاحيات</th><th>الإصدار</th><th>الانتهاء</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="poaTable"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="sub-title">🚨 المحاضر والحوادث</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🚨 سجل المحاضر</div>
+      <button class="btn-add" onclick="openModal('incidentModal')">+ إضافة محضر</button>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>النوع</th><th>الفرع</th><th>الوصف</th><th>التاريخ</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="incidentsTable"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .main -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Lawyer Modal -->
+<div class="modal-overlay" id="lawyerModal">
+  <div class="modal">
+    <div class="modal-title">👨‍💼 إضافة مهمة لمحامي</div>
+    <div class="form-group"><label>اسم المحامي</label><input id="lw_name" placeholder="الاسم الكامل"></div>
+    <div class="form-group"><label>المهمة</label><input id="lw_task" placeholder="عنوان المهمة"></div>
+    <div class="form-group"><label>التفاصيل</label><textarea id="lw_details" rows="2" placeholder="تفاصيل إضافية..."></textarea></div>
+    <div class="form-group"><label>تاريخ التكليف (تاريخ تسليم المهمة)</label><input type="date" id="lw_assign"></div>
+    <div class="form-group"><label>الديدلاين</label><input type="date" id="lw_deadline"></div>
+    <div class="form-group"><label>تاريخ الانتهاء من المهمة</label><input type="date" id="lw_endDate"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="lw_status">
+        <option value="progress">جاري التنفيذ</option>
+        <option value="pending">لم يبدأ</option>
+        <option value="done">منجز</option>
+        <option value="urgent">عاجل</option>
+        <option value="late">متأخر</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('lawyerModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveLawyerTask()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Govermind Modal -->
+<div class="modal-overlay" id="govermindModal">
+  <div class="modal">
+    <div class="modal-title">🏗️ إضافة مهمة لمكتب Govermind</div>
+    <div class="form-group"><label>المسؤول</label><input id="gm_name" placeholder="اسم المسؤول بالمكتب"></div>
+    <div class="form-group"><label>المهمة</label><input id="gm_task" placeholder="عنوان المهمة"></div>
+    <div class="form-group"><label>التفاصيل</label><textarea id="gm_details" rows="2" placeholder="تفاصيل إضافية..."></textarea></div>
+    <div class="form-group"><label>تاريخ التكليف (تاريخ تسليم المهمة)</label><input type="date" id="gm_assign"></div>
+    <div class="form-group"><label>الديدلاين</label><input type="date" id="gm_deadline"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="gm_status">
+        <option value="progress">جاري التنفيذ</option>
+        <option value="pending">لم يبدأ</option>
+        <option value="done">منجز</option>
+        <option value="urgent">عاجل</option>
+        <option value="late">متأخر</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('govermindModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveGovermindTask()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7Days Modal -->
+<div class="modal-overlay" id="sevendaysModal">
+  <div class="modal">
+    <div class="modal-title">📦 إضافة مهمة لمكتب 7Days</div>
+    <div class="form-group"><label>المسؤول</label><input id="sd_name" placeholder="اسم المسؤول بالمكتب"></div>
+    <div class="form-group"><label>المهمة</label><input id="sd_task" placeholder="عنوان المهمة"></div>
+    <div class="form-group"><label>التفاصيل</label><textarea id="sd_details" rows="2" placeholder="تفاصيل إضافية..."></textarea></div>
+    <div class="form-group"><label>تاريخ التكليف (تاريخ تسليم المهمة)</label><input type="date" id="sd_assign"></div>
+    <div class="form-group"><label>الديدلاين</label><input type="date" id="sd_deadline"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="sd_status">
+        <option value="progress">جاري التنفيذ</option>
+        <option value="pending">لم يبدأ</option>
+        <option value="done">منجز</option>
+        <option value="urgent">عاجل</option>
+        <option value="late">متأخر</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('sevendaysModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveSevendaysTask()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contract Modal -->
+<div class="modal-overlay" id="contractModal">
+  <div class="modal">
+    <div class="modal-title">📄 إضافة عقد</div>
+    <div class="form-group"><label>Subject Email</label><input id="c_emailSubject" placeholder="السابجيكت اللي جاء في الإيميل"></div>
+    <div class="form-group"><label>موضوع الإيميل</label><textarea id="c_emailTopic" rows="2" placeholder="محتوى/موضوع الإيميل"></textarea></div>
+    <div class="form-group"><label>الطرف الأول</label><input id="c_party1" placeholder="الطرف الأول"></div>
+    <div class="form-group"><label>نوع العقد</label>
+      <select id="c_type"><option>عقد إيجار</option><option>فسخ إيجار</option><option>عقد عمل</option><option>عقد توريد</option><option>ملحق تفاسخ</option><option>عقد توريد عمالة</option><option>عقد 3bl</option><option>أخرى</option></select>
+    </div>
+    <div class="form-group"><label>تاريخ استلام الإيميل</label><input type="date" id="c_workStartDate"></div>
+    <div class="form-group"><label>الديدلاين</label><input type="date" id="c_deadline"></div>
+    <div class="form-group"><label>تاريخ الانجاز وارسال العقد اول مرة على الايميل</label><input type="date" id="c_emailSentDate"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="c_status"><option value="progress">جاري</option><option value="done">منتهي</option><option value="urgent">عاجل</option><option value="pending">قيد المراجعة</option></select>
+    </div>
+    <div class="form-group"><label>ملاحظات</label><textarea id="c_notes" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('contractModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveContract()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- License Modal -->
+<div class="modal-overlay" id="licenseModal">
+  <div class="modal">
+    <div class="modal-title">🏢 إضافة فرع / ترخيص</div>
+    <div class="form-group"><label>اسم الفرع</label><input id="l_name" placeholder="اسم الفرع"></div>
+    <div class="form-group"><label>الموقع</label><input id="l_location" placeholder="المدينة - الحي"></div>
+    <div class="form-group"><label>نوع الترخيص</label>
+      <select id="l_type"><option>ترخيص تجاري</option><option>ترخيص صحي</option><option>ترخيص نشاط</option><option>أخرى</option></select>
+    </div>
+    <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="l_expiry"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="l_status"><option value="done">ساري</option><option value="progress">جاري التجديد</option><option value="urgent">منتهي - عاجل</option><option value="pending">قيد الإصدار</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('licenseModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveLicense()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Authority Modal -->
+<div class="modal-overlay" id="authorityModal">
+  <div class="modal">
+    <div class="modal-title">🏛️ إضافة متابعة جهة</div>
+    <div class="form-group"><label>الجهة</label>
+      <select id="a_body"><option>هيئة الاستثمار</option><option>هيئة النقل البري</option><option>البطاقة الضريبية</option><option>الشهر العقاري</option><option>التأمينات الاجتماعية</option><option>أخرى</option></select>
+    </div>
+    <div class="form-group"><label>الموضوع</label><input id="a_subject" placeholder="موضوع المتابعة"></div>
+    <div class="form-group"><label>الفرع</label><input id="a_branch" placeholder="اسم الفرع"></div>
+    <div class="form-group"><label>آخر متابعة</label><input type="date" id="a_last"></div>
+    <div class="form-group"><label>الموعد القادم</label><input type="date" id="a_next"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="a_status"><option value="progress">جاري</option><option value="pending">منتظر رد</option><option value="done">منتهي</option><option value="urgent">عاجل</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('authorityModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveAuthority()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal">
+    <div class="modal-title">📧 إضافة إيميل</div>
+    <div class="form-group"><label>Subject Email</label><input id="e_subject" placeholder="السابجيكت اللي جاء في الإيميل"></div>
+    <div class="form-group"><label>موضوع الإيميل</label><textarea id="e_topic" rows="2" placeholder="محتوى/موضوع الإيميل"></textarea></div>
+    <div class="form-group"><label>المُرسِل</label><input id="e_from" placeholder="اسم الشخص أو الجهة"></div>
+    <div class="form-group"><label>تاريخ الاستلام</label><input type="date" id="e_date"></div>
+    <div class="form-group"><label>تاريخ الرد</label><input type="date" id="e_replyDate"></div>
+    <div class="form-group"><label>حالة الرد</label>
+      <select id="e_replied"><option value="no">❌ لم يُرد</option><option value="waiting">⏳ انتظار</option><option value="yes">✅ تم الرد</option></select>
+    </div>
+    <div class="form-group"><label>ملاحظة</label><textarea id="e_note" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('emailModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveEmail()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- POA Modal -->
+<div class="modal-overlay" id="poaModal">
+  <div class="modal">
+    <div class="modal-title">📋 إضافة تفويض</div>
+    <div class="form-group"><label>المفوَّض</label><input id="p_name" placeholder="الاسم الكامل"></div>
+    <div class="form-group"><label>الإدارة</label><input id="p_dept" placeholder="القسم أو الإدارة"></div>
+    <div class="form-group"><label>الصلاحيات</label><textarea id="p_powers" rows="2" placeholder="صلاحيات التفويض..."></textarea></div>
+    <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="p_issued"></div>
+    <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="p_expiry"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="p_status"><option value="done">ساري</option><option value="urgent">منتهي</option><option value="progress">قيد الإصدار</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('poaModal')">إلغاء</button>
+      <button class="btn-save" onclick="savePOA()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Incident Modal -->
+<div class="modal-overlay" id="incidentModal">
+  <div class="modal">
+    <div class="modal-title">🚨 إضافة محضر</div>
+    <div class="form-group"><label>النوع</label>
+      <select id="i_type"><option>محضر سرقة</option><option>محضر إيجار</option><option>محضر تعدي</option><option>شكوى</option><option>نزاع عمالي</option><option>أخرى</option></select>
+    </div>
+    <div class="form-group"><label>الفرع</label><input id="i_branch" placeholder="اسم الفرع"></div>
+    <div class="form-group"><label>الوصف</label><textarea id="i_desc" rows="2"></textarea></div>
+    <div class="form-group"><label>التاريخ</label><input type="date" id="i_date"></div>
+    <div class="form-group"><label>الحالة</label>
+      <select id="i_status"><option value="progress">جاري التحقيق</option><option value="urgent">عاجل</option><option value="pending">منتظر إجراء</option><option value="done">تم الحل</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('incidentModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveIncident()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title" id="editModalTitle">✏️ تعديل</div>
+    <div id="editFields"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('editModal')">إلغاء</button>
+      <button class="btn-save" onclick="saveEdit()">💾 حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="completionModal">
+  <div class="modal">
+    <div class="modal-title">✅ تسجيل الإنجاز</div>
+    <div style="background:#dcfce7;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#166534;font-weight:600">
+      🎉 ممتاز! المهمة اتعلمت منجزة — سجّل إيه اللي عملته عشان يظهر في التقرير
+    </div>
+    <div class="form-group">
+      <label>إيه اللي أنجزته بالظبط؟</label>
+      <textarea id="completion_note" rows="4" placeholder="مثال: تم إرسال العقد للطرف الثاني وتم التوقيع عليه — أو: تم تسجيل الفرع في هيئة الاستثمار بتاريخ اليوم..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>تاريخ الإنجاز</label>
+      <input type="date" id="completion_date">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="skipCompletion()">تخطي</button>
+      <button class="btn-save" onclick="saveCompletion()">✅ حفظ الإنجاز</button>
+    </div>
+  </div>
+</div>
+
+<!-- Updates Modal (generic - used across all sections) -->
+<div class="modal-overlay" id="updatesModal">
+  <div class="modal">
+    <div class="modal-title">📝 تحديثات المهمة</div>
+    <div id="updatesList" style="margin-bottom:16px;max-height:260px;overflow-y:auto"></div>
+    <div class="form-group"><label>إضافة تحديث جديد</label><textarea id="upd_text" rows="3" placeholder="اكتب تحديث (مثال: تم الرد من الطرف الآخر وفي انتظار التوقيع)..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('updatesModal')">إغلاق</button>
+      <button class="btn-save" onclick="saveUpdate()">➕ إضافة تحديث</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attachments Modal (generic - used across all sections) -->
+<div class="modal-overlay" id="attachModal">
+  <div class="modal">
+    <div class="modal-title">📎 المرفقات</div>
+    <div class="attach-dropzone" id="attachDropzone" onclick="document.getElementById('attach_file').click()">
+      <div style="font-size:26px">📎</div>
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:4px">اضغط هنا أو اسحب الملف لرفعه</div>
+      <div class="attach-hint">صور (JPG, PNG) أو ملفات PDF فقط</div>
+      <input type="file" id="attach_file" accept="image/*,application/pdf" multiple style="display:none">
+    </div>
+    <div id="attachList" style="max-height:280px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('attachModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox for image attachments -->
+<div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+  <img id="lightboxImg" src="">
+</div>
+
+<script>
+// ===== DATA =====
+let data = { contracts:[], licenses:[], authorities:[], emails:[], poas:[], incidents:[], lawyerTasks:[], govermind:[], sevendays:[], dailyLog:{entries:[],picks:[]} };
+let lastReport = '';
+let donutChart = null, barChart = null;
+let currentUpdateTarget = null; // {arr, id}
+let currentAttachTarget = null; // {arr, id}
+
+const ALL_ARRAYS = ['contracts','licenses','authorities','emails','poas','incidents','lawyerTasks','govermind','sevendays'];
+
+function loadData(){
+  try { const s = localStorage.getItem('legalDash2'); if(s) data = JSON.parse(s); } catch(e){}
+  ALL_ARRAYS.forEach(k=>{
+    if(!Array.isArray(data[k])) data[k]=[];
+    data[k].forEach(item=>{ if(!Array.isArray(item.updates)) item.updates=[]; });
+  });
+  if(!data.dailyLog || typeof data.dailyLog!=='object') data.dailyLog = {entries:[],picks:[]};
+  if(!Array.isArray(data.dailyLog.entries)) data.dailyLog.entries=[];
+  if(!Array.isArray(data.dailyLog.picks)) data.dailyLog.picks=[];
+}
+function saveData(){
+  try{ localStorage.setItem('legalDash2', JSON.stringify(data)); }catch(e){}
+  // Vibration feedback on mobile when data is saved
+  if(navigator.vibrate) navigator.vibrate(40);
+}
+loadData();
+
+// DATE
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// TABS - fixed for mobile (no reliance on 'this')
+function showTab(tab){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const sec = document.getElementById('section-'+tab);
+  if(sec) sec.classList.add('active');
+  const btn = document.querySelector(`.tab[data-tab="${tab}"]`);
+  if(btn) btn.classList.add('active');
+  renderAll();
+}
+
+// GLOBAL SEARCH
+const SEARCH_CONFIG = {
+  contracts:   {tab:'contracts',  icon:'📄', label:'عقد',       fields:['emailSubject','emailTopic','party1','type','notes']},
+  lawyerTasks: {tab:'lawyers',    icon:'👨‍💼', label:'مهمة محامي', fields:['name','task','details']},
+  govermind:   {tab:'govermind',  icon:'🏗️', label:'Govermind',  fields:['name','task','details']},
+  sevendays:   {tab:'sevendays',  icon:'📦', label:'7Days',      fields:['name','task','details']},
+  emails:      {tab:'emails',     icon:'📧', label:'إيميل',      fields:['subject','from','note']},
+  licenses:    {tab:'compliance', icon:'🏢', label:'ترخيص',      fields:['name','location','type']},
+  authorities: {tab:'compliance', icon:'🏛️', label:'جهة حكومية', fields:['body','subject','branch']},
+  poas:        {tab:'compliance', icon:'📜', label:'تفويض',      fields:['name','dept','powers']},
+  incidents:   {tab:'compliance', icon:'🚨', label:'محضر',       fields:['type','branch','desc']},
+};
+
+function performGlobalSearch(qRaw){
+  const box = document.getElementById('globalSearchResults');
+  const q = (qRaw||'').trim();
+  if(!q){ box.classList.remove('open'); box.innerHTML=''; return; }
+
+  const results = [];
+  Object.keys(SEARCH_CONFIG).forEach(arr=>{
+    const cfg = SEARCH_CONFIG[arr];
+    (data[arr]||[]).forEach(item=>{
+      const hay = cfg.fields.map(f=>item[f]||'').join(' ').toLowerCase();
+      if(hay.includes(q.toLowerCase())){
+        const title = item.task || item.party1 || item.name || item.subject || item.type || item.body || item.desc || 'بدون عنوان';
+        const meta = [item.deadline, item.date, item.assignDate].filter(Boolean)[0] || '';
+        results.push({arr, id:item.id, cfg, title, meta, status:item.status});
+      }
+    });
+  });
+
+  if(!results.length){
+    box.innerHTML = `<div class="search-results-empty">لا توجد نتائج لـ "${q}"</div>`;
+    box.classList.add('open');
+    return;
+  }
+
+  box.innerHTML = results.slice(0,25).map(r=>`
+    <div class="search-result-item" onclick="goToSearchResult('${r.arr}',${r.id})">
+      <div class="sr-title">${r.cfg.icon} ${r.title}</div>
+      <div class="sr-meta"><span>${r.meta||''}</span><span class="sr-cat">${r.cfg.label}</span></div>
+    </div>`).join('');
+  box.classList.add('open');
+}
+
+function goToSearchResult(arr, id){
+  const cfg = SEARCH_CONFIG[arr];
+  if(!cfg) return;
+  showTab(cfg.tab);
+  document.getElementById('globalSearchResults').classList.remove('open');
+  document.getElementById('globalSearch').value='';
+  setTimeout(()=>openEdit(arr, id), 50);
+}
+
+document.addEventListener('click', function(e){
+  const wrap = document.querySelector('.search-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    document.getElementById('globalSearchResults').classList.remove('open');
+  }
+});
+
+
+// MODAL
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+});
+
+// BADGE
+function badge(s){
+  const m={pending:['badge-pending','قيد المراجعة'],done:['badge-done','منجز'],urgent:['badge-urgent','عاجل'],progress:['badge-progress','جاري'],late:['badge-late','متأخر']};
+  const [cls,lbl]=m[s]||['badge-pending',s];
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+// ===== ترتيب المهام المنجزة في آخر الجدول مع فاصل =====
+function withDoneSeparator(arr, colspan, rowFn){
+  const sorted = [...arr].sort((a,b)=> (a.status==='done'?1:0)-(b.status==='done'?1:0));
+  const firstDoneIdx = sorted.findIndex(x=>x.status==='done');
+  return sorted.map((item,idx)=>{
+    const sep = (idx===firstDoneIdx && firstDoneIdx>0) ? `<tr class="done-separator"><td colspan="${colspan}">✅ المهام المنجزة</td></tr>` : '';
+    return sep + rowFn(item);
+  }).join('');
+}
+
+
+function undoBtn(arr,id){
+  return `<button class="action-btn" onclick="undoDone('${arr}',${id})" title="تراجع عن الإنجاز">↩️</button>`;
+}
+
+function daysDiff(dateStr){
+  if(!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.floor((today - new Date(dateStr)) / 86400000);
+}
+
+// ===== COMPLETION NOTE MODAL =====
+let completionTarget = null; // {arr, id}
+
+function markDoneWithNote(arr, id) {
+  if(!confirm('متأكد إنك عايز تسجل المهمة دي منجزة؟')) return;
+  completionTarget = {arr, id};
+  document.getElementById('completion_note').value = '';
+  document.getElementById('completion_date').value = new Date().toISOString().split('T')[0];
+  openModal('completionModal');
+}
+
+// رجوع سريع عن الإنجاز - بترجع الحالة "جاري" تاني لو ضغطت منجز بالغلط
+function undoDone(arr, id){
+  const item = data[arr].find(x=>x.id===id);
+  if(!item) return;
+  if(!confirm('متأكد إنك عايز ترجع عن تسجيل الإنجاز؟')) return;
+  item.status = 'progress';
+  saveData(); renderAll();
+}
+
+function saveCompletion() {
+  if (!completionTarget) return;
+  const {arr, id} = completionTarget;
+  const item = data[arr].find(x => x.id === id);
+  if (!item) return;
+  const note = document.getElementById('completion_note').value.trim();
+  const date = document.getElementById('completion_date').value;
+  item.status = 'done';
+  item.doneDate = date || new Date().toISOString().split('T')[0];
+  if(arr==='contracts') item.emailSentDate = item.doneDate;
+  if (!Array.isArray(item.updates)) item.updates = [];
+  const stamp = new Date(item.doneDate).toLocaleDateString('ar-EG',{year:'numeric',month:'2-digit',day:'2-digit'});
+  item.updates.push({
+    date: stamp + ' - تم الإنجاز',
+    text: note || 'تم إنجاز المهمة'
+  });
+  saveData(); renderAll(); closeModal('completionModal');
+  completionTarget = null;
+}
+
+function skipCompletion() {
+  if (!completionTarget) return;
+  const {arr, id} = completionTarget;
+  const item = data[arr].find(x => x.id === id);
+  if (item) {
+    item.status = 'done';
+    item.doneDate = new Date().toISOString().split('T')[0];
+    if(arr==='contracts') item.emailSentDate = item.doneDate;
+    saveData(); renderAll();
+  }
+  closeModal('completionModal');
+  completionTarget = null;
+}
+
+
+function updatesBtn(arr,id,item){
+  const n=(item.updates||[]).length;
+  return `<button class="action-btn" onclick="openUpdates('${arr}',${id})" title="تحديثات">📝${n?' '+n:''}</button>`;
+}
+
+// ===== ATTACHMENTS (images / PDF) — files stored in IndexedDB, only metadata in localStorage =====
+function attachBtn(arr,id,item){
+  const n=(item.attachments||[]).length;
+  return `<button class="action-btn attach-btn" onclick="openAttachments('${arr}',${id})" title="مرفقات">📎${n?' '+n:''}</button>`;
+}
+
+let _attachDB = null;
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    if(_attachDB) return resolve(_attachDB);
+    const req = indexedDB.open('legalDashAttachments', 1);
+    req.onupgradeneeded = e=>{ e.target.result.createObjectStore('files', {keyPath:'fileId'}); };
+    req.onsuccess = e=>{ _attachDB = e.target.result; resolve(_attachDB); };
+    req.onerror = e=>reject(e);
+  });
+}
+async function idbPutFile(fileId, blob){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').put({fileId, blob});
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = e=>reject(e);
+  });
+}
+async function idbGetFile(fileId){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readonly');
+    const req = tx.objectStore('files').get(fileId);
+    req.onsuccess = ()=>resolve(req.result ? req.result.blob : null);
+    req.onerror = e=>reject(e);
+  });
+}
+async function idbDeleteFile(fileId){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').delete(fileId);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = e=>reject(e);
+  });
+}
+function formatBytes(b){
+  if(!b) return '0 KB';
+  if(b<1024*1024) return Math.max(1,Math.round(b/1024))+' KB';
+  return (b/(1024*1024)).toFixed(1)+' MB';
+}
+function openAttachments(arr,id){
+  currentAttachTarget = {arr,id};
+  document.getElementById('attach_file').value = '';
+  renderAttachList();
+  openModal('attachModal');
+}
+function renderAttachList(){
+  if(!currentAttachTarget) return;
+  const {arr,id} = currentAttachTarget;
+  const item = data[arr].find(x=>x.id===id);
+  const list = document.getElementById('attachList');
+  const atts = (item && item.attachments) || [];
+  if(!atts.length){
+    list.innerHTML = '<div class="empty-state" style="padding:14px">لا توجد مرفقات بعد</div>';
+    return;
+  }
+  list.innerHTML = atts.map(a=>{
+    const isImg = a.type && a.type.startsWith('image/');
+    const thumb = isImg
+      ? `<img class="attach-thumb" data-file-id="${a.fileId}" src="">`
+      : `<div class="attach-icon">📄</div>`;
+    return `<div class="attach-item" data-file-id="${a.fileId}">
+      ${thumb}
+      <div class="attach-info">
+        <div class="attach-name">${a.name}</div>
+        <div class="attach-size">${formatBytes(a.size)}</div>
+      </div>
+      <div class="attach-actions">
+        <button class="action-btn" onclick="viewAttachment('${a.fileId}','${isImg?'image':'other'}','${a.name.replace(/'/g,"")}')" title="عرض">👁️</button>
+        <button class="action-btn del" onclick="deleteAttachment('${a.fileId}')" title="حذف">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+  // lazily load image thumbnails from IndexedDB
+  atts.filter(a=>a.type && a.type.startsWith('image/')).forEach(async a=>{
+    const blob = await idbGetFile(a.fileId);
+    if(blob){
+      const url = URL.createObjectURL(blob);
+      const img = list.querySelector(`img[data-file-id="${a.fileId}"]`);
+      if(img) img.src = url;
+    }
+  });
+}
+async function handleAttachmentFiles(fileList){
+  if(!currentAttachTarget || !fileList || !fileList.length) return;
+  const {arr,id} = currentAttachTarget;
+  const item = data[arr].find(x=>x.id===id);
+  if(!item) return;
+  if(!Array.isArray(item.attachments)) item.attachments = [];
+  const allowed = ['application/pdf'];
+  for(const file of Array.from(fileList)){
+    const isImg = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    if(!isImg && !isPdf){
+      alert(`الملف "${file.name}" مش صورة أو PDF — اتجاهل`);
+      continue;
+    }
+    const fileId = 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2,9);
+    try{
+      await idbPutFile(fileId, file);
+      item.attachments.push({fileId, name:file.name, type:file.type, size:file.size});
+    }catch(err){
+      alert('حصل خطأ أثناء رفع الملف: ' + file.name);
+    }
+  }
+  saveData(); renderAll(); renderAttachList();
+  document.getElementById('attach_file').value = '';
+}
+async function viewAttachment(fileId, kind, name){
+  const blob = await idbGetFile(fileId);
+  if(!blob){ alert('تعذر العثور على الملف'); return; }
+  const url = URL.createObjectURL(blob);
+  if(kind==='image'){
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightboxOverlay').classList.add('open');
+  } else {
+    window.open(url, '_blank');
+  }
+}
+function closeLightbox(){
+  document.getElementById('lightboxOverlay').classList.remove('open');
+  document.getElementById('lightboxImg').src = '';
+}
+async function deleteAttachment(fileId){
+  if(!currentAttachTarget) return;
+  if(!confirm('متأكد إنك عايز تحذف المرفق ده؟')) return;
+  const {arr,id} = currentAttachTarget;
+  const item = data[arr].find(x=>x.id===id);
+  if(!item || !item.attachments) return;
+  item.attachments = item.attachments.filter(a=>a.fileId!==fileId);
+  try{ await idbDeleteFile(fileId); }catch(e){}
+  saveData(); renderAll(); renderAttachList();
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const input = document.getElementById('attach_file');
+  const zone = document.getElementById('attachDropzone');
+  if(input) input.addEventListener('change', e=>handleAttachmentFiles(e.target.files));
+  if(zone){
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('dragover');
+      handleAttachmentFiles(e.dataTransfer.files);
+    });
+  }
+});
+
+function openUpdates(arr,id){
+  currentUpdateTarget={arr,id};
+  document.getElementById('upd_text').value='';
+  renderUpdatesList();
+  openModal('updatesModal');
+}
+
+function renderUpdatesList(){
+  if(!currentUpdateTarget) return;
+  const {arr,id}=currentUpdateTarget;
+  const item=data[arr].find(x=>x.id===id);
+  const list=document.getElementById('updatesList');
+  if(!item || !item.updates || !item.updates.length){
+    list.innerHTML='<div class="empty-state" style="padding:14px">لا توجد تحديثات بعد على هذه المهمة</div>';
+    return;
+  }
+  list.innerHTML=item.updates.slice().reverse().map(u=>`<div class="update-row"><div class="update-date">🕓 ${u.date}</div><div class="update-text">${u.text}</div></div>`).join('');
+}
+
+function saveUpdate(){
+  if(!currentUpdateTarget) return;
+  const {arr,id}=currentUpdateTarget;
+  const item=data[arr].find(x=>x.id===id);
+  if(!item) return;
+  const text=document.getElementById('upd_text').value.trim();
+  if(!text) return;
+  if(!Array.isArray(item.updates)) item.updates=[];
+  const now=new Date();
+  const stamp=now.toLocaleDateString('ar-EG',{year:'numeric',month:'2-digit',day:'2-digit'})+' - '+now.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  item.updates.push({date:stamp, text});
+  saveData(); renderAll();
+  document.getElementById('upd_text').value='';
+  renderUpdatesList();
+}
+
+// ===== DAILY TASKS / TO-DO =====
+function getPendingPool(){
+  const pool = [];
+  Object.keys(SEARCH_CONFIG).forEach(arr=>{
+    const cfg = SEARCH_CONFIG[arr];
+    (data[arr]||[]).forEach(item=>{
+      let status = item.status;
+      if(arr==='emails') status = item.replied==='yes' ? 'done' : (item.replied==='waiting' ? 'progress' : 'pending');
+      if(status==='done') return;
+      const title = item.task || item.party1 || item.name || item.subject || item.type || item.body || item.desc || 'بدون عنوان';
+      const deadline = item.deadline || item.expiry || item.next || null;
+      pool.push({arr, id:item.id, cfg, title, status, deadline});
+    });
+  });
+  pool.sort((a,b)=>{
+    const da = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+    const db = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+    return da-db;
+  });
+  return pool;
+}
+
+function togglePick(arr,id){
+  if(!Array.isArray(data.dailyLog.picks)) data.dailyLog.picks=[];
+  const key = arr+':'+id;
+  const idx = data.dailyLog.picks.indexOf(key);
+  if(idx>-1) data.dailyLog.picks.splice(idx,1); else data.dailyLog.picks.push(key);
+  saveData(); renderPicks(); renderPendingPool();
+}
+
+function renderPendingPool(){
+  const filterEl = document.getElementById('dt_catFilter');
+  const filter = filterEl ? filterEl.value : 'all';
+  const pool = getPendingPool().filter(p=> filter==='all' || p.arr===filter);
+  const el = document.getElementById('pendingPoolList');
+  if(!el) return;
+  if(!pool.length){ el.innerHTML = '<div class="empty-state">لا توجد مهام معلقة 🎉</div>'; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  el.innerHTML = pool.map(p=>{
+    const picked = (data.dailyLog.picks||[]).includes(p.arr+':'+p.id);
+    const diff = p.deadline ? Math.floor((new Date(p.deadline)-today)/86400000) : null;
+    const deadlineStr = p.deadline
+      ? (diff<0 ? `<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>` : diff===0 ? '<span style="color:var(--warning);font-weight:700">اليوم</span>' : `خلال ${diff} يوم`)
+      : 'بدون ديدلاين';
+    return `<div class="attach-item"${picked?' style="border-color:var(--gold);background:#fdf7e8"':''}>
+      <div class="attach-icon">${p.cfg.icon}</div>
+      <div class="attach-info">
+        <div class="attach-name">${p.title}</div>
+        <div class="attach-size">${p.cfg.label} · ${deadlineStr}</div>
+      </div>
+      <div class="attach-actions">
+        <button class="action-btn" onclick="togglePick('${p.arr}',${p.id})" title="${picked?'شيل من مهام اليوم':'ضيفها لمهام اليوم'}">${picked?'⭐':'☆'}</button>
+        <button class="action-btn" onclick="goToSearchResult('${p.arr}',${p.id})" title="فتح">↗️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPicks(){
+  const el = document.getElementById('todayPicksList');
+  if(!el) return;
+  const pool = getPendingPool();
+  const validKeys = pool.map(p=>p.arr+':'+p.id);
+  const cleaned = (data.dailyLog.picks||[]).filter(k=>validKeys.includes(k));
+  if(cleaned.length !== (data.dailyLog.picks||[]).length){ data.dailyLog.picks = cleaned; saveData(); }
+  if(!cleaned.length){ el.innerHTML = '<div class="empty-state">مفيش مهام مختارة للنهاردة — اختار من "المهام المعلقة" تحت ⬇️</div>'; return; }
+  el.innerHTML = cleaned.map(k=>{
+    const [arr, idStr] = k.split(':');
+    const id = Number(idStr);
+    const p = pool.find(x=>x.arr===arr && x.id===id);
+    if(!p) return '';
+    return `<div class="attach-item" style="border-color:var(--gold);background:#fdf7e8">
+      <div class="attach-icon">${p.cfg.icon}</div>
+      <div class="attach-info">
+        <div class="attach-name">${p.title}</div>
+        <div class="attach-size">${p.cfg.label}</div>
+      </div>
+      <div class="attach-actions">
+        <button class="action-btn done-btn" onclick="markDoneWithNote('${arr}',${id})" title="تم الإنجاز">✅</button>
+        <button class="action-btn" onclick="togglePick('${arr}',${id})" title="شيل من اليوم">✖️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addLogEntry(){
+  const ta = document.getElementById('dt_logText');
+  const text = ta.value.trim();
+  if(!text) return;
+  if(!Array.isArray(data.dailyLog.entries)) data.dailyLog.entries=[];
+  data.dailyLog.entries.push({id:Date.now(), ts:new Date().toISOString(), text});
+  saveData(); ta.value=''; renderDailyLog();
+}
+function deleteLogEntry(id){
+  if(!confirm('متأكد إنك عايز تحذف التسجيل ده؟')) return;
+  data.dailyLog.entries = (data.dailyLog.entries||[]).filter(e=>e.id!==id);
+  saveData(); renderDailyLog();
+}
+function renderDailyLog(){
+  const el = document.getElementById('dailyLogList');
+  if(!el) return;
+  const entries = (data.dailyLog.entries||[]).slice().sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+  if(!entries.length){ el.innerHTML = '<div class="empty-state">لسه معملتش أي تسجيل — ابدأ سجل يومك 👆</div>'; return; }
+  const groups = {};
+  const order = [];
+  entries.forEach(e=>{
+    const dayKey = new Date(e.ts).toLocaleDateString('ar-EG',{year:'numeric',month:'2-digit',day:'2-digit'});
+    if(!groups[dayKey]){ groups[dayKey]=[]; order.push(dayKey); }
+    groups[dayKey].push(e);
+  });
+  el.innerHTML = order.map(day=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px">📅 ${day}</div>
+      ${groups[day].map(e=>{
+        const time = new Date(e.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="update-row" style="display:flex;align-items:flex-start;gap:8px">
+          <div style="flex:1"><div class="update-date">🕓 ${time}</div><div class="update-text">${e.text}</div></div>
+          <button class="action-btn del" onclick="deleteLogEntry(${e.id})" title="حذف">🗑️</button>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+// ===== LAWYER TASKS =====
+function saveLawyerTask(){
+  const t={
+    id:Date.now(),
+    name:document.getElementById('lw_name').value,
+    task:document.getElementById('lw_task').value,
+    details:document.getElementById('lw_details').value,
+    assignDate:document.getElementById('lw_assign').value,
+    deadline:document.getElementById('lw_deadline').value,
+    endDate:document.getElementById('lw_endDate').value,
+    status:document.getElementById('lw_status').value,
+    doneDate:null,
+    updates:[],
+    attachments:[]
+  };
+  if(!t.name||!t.task) return alert('أدخل اسم المحامي والمهمة');
+  data.lawyerTasks.push(t);
+  saveData(); renderAll(); closeModal('lawyerModal');
+  ['lw_name','lw_task','lw_details','lw_assign','lw_deadline','lw_endDate'].forEach(id=>document.getElementById(id).value='');
+}
+
+function markLawyerDone(id){ markDoneWithNote('lawyerTasks', id); }
+
+function renderLawyerTasks(){
+  const tb=document.getElementById('lawyersTable');
+  const cardsEl=document.getElementById('lawyerCards');
+  if(!data.lawyerTasks.length){
+    tb.innerHTML='<tr><td colspan="8" class="empty-state">لا توجد مهام مفوضة بعد</td></tr>';
+    cardsEl.innerHTML='';
+    return;
+  }
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  tb.innerHTML=withDoneSeparator(data.lawyerTasks, 8, t=>{
+    const diff = t.deadline ? Math.floor((new Date(t.deadline)-today)/86400000) : null;
+    const deadlineStr = t.deadline ? (diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>' : diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`) : '—';
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.task}</td>
+      <td style="font-size:11px;color:var(--muted)">${t.details||'—'}</td>
+      <td>${t.assignDate||'—'}</td>
+      <td>${deadlineStr}</td>
+      <td>${t.doneDate||'—'}</td>
+      <td>${badge(t.status)}</td>
+      <td>
+        ${updatesBtn('lawyerTasks',t.id,t)}${attachBtn('lawyerTasks',t.id,t)}
+        <button class="action-btn" onclick="openEdit('lawyerTasks',${t.id})" title="تعديل">✏️</button>
+        ${t.status!=='done'?`<button class="action-btn done-btn" onclick="markLawyerDone(${t.id})">✅</button>`:undoBtn('lawyerTasks',t.id)}
+        <button class="action-btn del" onclick="deleteItem('lawyerTasks',${t.id})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+
+  // Group by lawyer
+  const grouped={};
+  data.lawyerTasks.forEach(t=>{ if(!grouped[t.name]) grouped[t.name]=[]; grouped[t.name].push(t); });
+  cardsEl.innerHTML = Object.entries(grouped).map(([name,tasks])=>{
+    const done=tasks.filter(t=>t.status==='done').length;
+    const late=tasks.filter(t=>t.status==='late').length;
+    const inprog=tasks.filter(t=>t.status==='progress'||t.status==='pending').length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return `<div class="lawyer-card">
+      <div class="lawyer-name">
+        <span>👨‍💼 ${name}</span>
+        <span class="pct-${pct>=70?'green':pct>=40?'yellow':'red'}" style="font-size:18px;font-weight:900">${pct}%</span>
+      </div>
+      <div class="lawyer-stats">
+        <span class="lstat" style="color:var(--success)">✅ منجز: ${done}</span>
+        <span class="lstat" style="color:var(--info)">🔄 جاري: ${inprog}</span>
+        <span class="lstat" style="color:var(--danger)">⏰ متأخر: ${late}</span>
+        <span class="lstat">📋 إجمالي: ${tasks.length}</span>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>نسبة الإنجاز</span><span>${pct}%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${pct>=70?'var(--success)':pct>=40?'var(--warning)':'var(--danger)'}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== GOVERMIND OFFICE TASKS =====
+function saveGovermindTask(){
+  const t={
+    id:Date.now(),
+    name:document.getElementById('gm_name').value,
+    task:document.getElementById('gm_task').value,
+    details:document.getElementById('gm_details').value,
+    assignDate:document.getElementById('gm_assign').value,
+    deadline:document.getElementById('gm_deadline').value,
+    status:document.getElementById('gm_status').value,
+    doneDate:null,
+    updates:[],
+    attachments:[]
+  };
+  if(!t.name||!t.task) return alert('أدخل اسم المسؤول والمهمة');
+  data.govermind.push(t);
+  saveData(); renderAll(); closeModal('govermindModal');
+  ['gm_name','gm_task','gm_details','gm_assign','gm_deadline'].forEach(id=>document.getElementById(id).value='');
+}
+
+function markGovermindDone(id){ markDoneWithNote('govermind', id); }
+
+function renderGovermindTasks(){
+  const tb=document.getElementById('govermindTable');
+  const cardsEl=document.getElementById('govermindCards');
+  if(!data.govermind.length){
+    tb.innerHTML='<tr><td colspan="8" class="empty-state">لا توجد مهام مفوضة لمكتب Govermind بعد</td></tr>';
+    cardsEl.innerHTML='';
+    return;
+  }
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  tb.innerHTML=withDoneSeparator(data.govermind, 8, t=>{
+    const diff = t.deadline ? Math.floor((new Date(t.deadline)-today)/86400000) : null;
+    const deadlineStr = t.deadline ? (diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>' : diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`) : '—';
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.task}</td>
+      <td style="font-size:11px;color:var(--muted)">${t.details||'—'}</td>
+      <td>${t.assignDate||'—'}</td>
+      <td>${deadlineStr}</td>
+      <td>${t.doneDate||'—'}</td>
+      <td>${badge(t.status)}</td>
+      <td>
+        ${updatesBtn('govermind',t.id,t)}${attachBtn('govermind',t.id,t)}
+        <button class="action-btn" onclick="openEdit('govermind',${t.id})" title="تعديل">✏️</button>
+        ${t.status!=='done'?`<button class="action-btn done-btn" onclick="markGovermindDone(${t.id})">✅</button>`:undoBtn('govermind',t.id)}
+        <button class="action-btn del" onclick="deleteItem('govermind',${t.id})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+
+  const grouped={};
+  data.govermind.forEach(t=>{ if(!grouped[t.name]) grouped[t.name]=[]; grouped[t.name].push(t); });
+  cardsEl.innerHTML = Object.entries(grouped).map(([name,tasks])=>{
+    const done=tasks.filter(t=>t.status==='done').length;
+    const late=tasks.filter(t=>t.status==='late').length;
+    const inprog=tasks.filter(t=>t.status==='progress'||t.status==='pending').length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return `<div class="lawyer-card">
+      <div class="lawyer-name">
+        <span>🏗️ ${name}</span>
+        <span class="pct-${pct>=70?'green':pct>=40?'yellow':'red'}" style="font-size:18px;font-weight:900">${pct}%</span>
+      </div>
+      <div class="lawyer-stats">
+        <span class="lstat" style="color:var(--success)">✅ منجز: ${done}</span>
+        <span class="lstat" style="color:var(--info)">🔄 جاري: ${inprog}</span>
+        <span class="lstat" style="color:var(--danger)">⏰ متأخر: ${late}</span>
+        <span class="lstat">📋 إجمالي: ${tasks.length}</span>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>نسبة الإنجاز</span><span>${pct}%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${pct>=70?'var(--success)':pct>=40?'var(--warning)':'var(--danger)'}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== 7DAYS OFFICE TASKS =====
+function saveSevendaysTask(){
+  const t={
+    id:Date.now(),
+    name:document.getElementById('sd_name').value,
+    task:document.getElementById('sd_task').value,
+    details:document.getElementById('sd_details').value,
+    assignDate:document.getElementById('sd_assign').value,
+    deadline:document.getElementById('sd_deadline').value,
+    status:document.getElementById('sd_status').value,
+    doneDate:null,
+    updates:[],
+    attachments:[]
+  };
+  if(!t.name||!t.task) return alert('أدخل اسم المسؤول والمهمة');
+  data.sevendays.push(t);
+  saveData(); renderAll(); closeModal('sevendaysModal');
+  ['sd_name','sd_task','sd_details','sd_assign','sd_deadline'].forEach(id=>document.getElementById(id).value='');
+}
+
+function markSevendaysDone(id){ markDoneWithNote('sevendays', id); }
+
+function renderSevendaysTasks(){
+  const tb=document.getElementById('sevendaysTable');
+  const cardsEl=document.getElementById('sevendaysCards');
+  if(!data.sevendays.length){
+    tb.innerHTML='<tr><td colspan="8" class="empty-state">لا توجد مهام مفوضة لمكتب 7Days بعد</td></tr>';
+    cardsEl.innerHTML='';
+    return;
+  }
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  tb.innerHTML=withDoneSeparator(data.sevendays, 8, t=>{
+    const diff = t.deadline ? Math.floor((new Date(t.deadline)-today)/86400000) : null;
+    const deadlineStr = t.deadline ? (diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>' : diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`) : '—';
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.task}</td>
+      <td style="font-size:11px;color:var(--muted)">${t.details||'—'}</td>
+      <td>${t.assignDate||'—'}</td>
+      <td>${deadlineStr}</td>
+      <td>${t.doneDate||'—'}</td>
+      <td>${badge(t.status)}</td>
+      <td>
+        ${updatesBtn('sevendays',t.id,t)}${attachBtn('sevendays',t.id,t)}
+        <button class="action-btn" onclick="openEdit('sevendays',${t.id})" title="تعديل">✏️</button>
+        ${t.status!=='done'?`<button class="action-btn done-btn" onclick="markSevendaysDone(${t.id})">✅</button>`:undoBtn('sevendays',t.id)}
+        <button class="action-btn del" onclick="deleteItem('sevendays',${t.id})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+
+  const grouped={};
+  data.sevendays.forEach(t=>{ if(!grouped[t.name]) grouped[t.name]=[]; grouped[t.name].push(t); });
+  cardsEl.innerHTML = Object.entries(grouped).map(([name,tasks])=>{
+    const done=tasks.filter(t=>t.status==='done').length;
+    const late=tasks.filter(t=>t.status==='late').length;
+    const inprog=tasks.filter(t=>t.status==='progress'||t.status==='pending').length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return `<div class="lawyer-card">
+      <div class="lawyer-name">
+        <span>📦 ${name}</span>
+        <span class="pct-${pct>=70?'green':pct>=40?'yellow':'red'}" style="font-size:18px;font-weight:900">${pct}%</span>
+      </div>
+      <div class="lawyer-stats">
+        <span class="lstat" style="color:var(--success)">✅ منجز: ${done}</span>
+        <span class="lstat" style="color:var(--info)">🔄 جاري: ${inprog}</span>
+        <span class="lstat" style="color:var(--danger)">⏰ متأخر: ${late}</span>
+        <span class="lstat">📋 إجمالي: ${tasks.length}</span>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>نسبة الإنجاز</span><span>${pct}%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${pct>=70?'var(--success)':pct>=40?'var(--warning)':'var(--danger)'}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== CONTRACTS =====
+function saveContract(){
+  const c={
+    id:Date.now(),
+    emailSubject:document.getElementById('c_emailSubject').value,
+    emailTopic:document.getElementById('c_emailTopic').value,
+    party1:document.getElementById('c_party1').value,
+    type:document.getElementById('c_type').value,
+    workStartDate:document.getElementById('c_workStartDate').value,
+    deadline:document.getElementById('c_deadline').value,
+    emailSentDate:document.getElementById('c_emailSentDate').value,
+    status:document.getElementById('c_status').value,
+    notes:document.getElementById('c_notes').value,
+    updates:[],
+    attachments:[]
+  };
+  if(!c.party1) return alert('أدخل الطرف الأول');
+  data.contracts.push(c); saveData(); renderAll(); closeModal('contractModal');
+  ['c_emailSubject','c_emailTopic','c_party1','c_workStartDate','c_deadline','c_emailSentDate','c_notes'].forEach(id=>document.getElementById(id).value='');
+}
+function renderContracts(){
+  const tb=document.getElementById('contractsTable');
+  if(!data.contracts.length){tb.innerHTML='<tr><td colspan="10" class="empty-state">لا توجد عقود</td></tr>';return;}
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  tb.innerHTML=withDoneSeparator(data.contracts, 10, c=>{
+    const diff = c.deadline ? Math.floor((new Date(c.deadline)-today)/86400000) : null;
+    const deadlineStr = c.deadline ? (diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>' : diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`) : '—';
+    return `<tr>
+      <td>${c.emailSubject||'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${c.emailTopic||'—'}</td>
+      <td><strong>${c.party1}</strong></td>
+      <td>${c.type}</td>
+      <td>${c.workStartDate||'—'}</td>
+      <td>${deadlineStr}</td>
+      <td>${c.emailSentDate||'—'}</td>
+      <td>${badge(c.status)}</td>
+      <td style="font-size:11px;color:var(--muted)">${c.notes||'—'}</td>
+      <td>
+        ${updatesBtn('contracts',c.id,c)}${attachBtn('contracts',c.id,c)}
+        <button class="action-btn" onclick="openEdit('contracts',${c.id})" title="تعديل">✏️</button>
+        ${c.status!=='done'?`<button class="action-btn done-btn" onclick="markDoneWithNote('contracts',${c.id})" title="إنجاز">✅</button>`:undoBtn('contracts',c.id)}
+        <button class="action-btn del" onclick="deleteItem('contracts',${c.id})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+}
+
+// ===== LICENSES =====
+function saveLicense(){
+  const l={id:Date.now(),name:document.getElementById('l_name').value,location:document.getElementById('l_location').value,type:document.getElementById('l_type').value,expiry:document.getElementById('l_expiry').value,status:document.getElementById('l_status').value,updates:[],attachments:[]};
+  if(!l.name) return alert('أدخل اسم الفرع');
+  data.licenses.push(l); saveData(); renderAll(); closeModal('licenseModal');
+  ['l_name','l_location','l_expiry'].forEach(id=>document.getElementById(id).value='');
+}
+function renderLicenses(){
+  const tb=document.getElementById('licensesTable');
+  if(!data.licenses.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">لا توجد فروع</td></tr>';return;}
+  tb.innerHTML=data.licenses.map(l=>`<tr><td><strong>${l.name}</strong></td><td>${l.location}</td><td>${l.type}</td><td>${l.expiry||'—'}</td><td>${badge(l.status)}</td><td>${updatesBtn('licenses',l.id,l)}${attachBtn('licenses',l.id,l)}<button class="action-btn" onclick="openEdit('licenses',${l.id})">✏️</button>${l.status!=='done'?`<button class="action-btn done-btn" onclick="markDoneWithNote('licenses',${l.id})" title="إنجاز">✅</button>`:undoBtn('licenses',l.id)}<button class="action-btn del" onclick="deleteItem('licenses',${l.id})">🗑️</button></td></tr>`).join('');
+}
+
+// ===== AUTHORITIES =====
+function saveAuthority(){
+  const a={id:Date.now(),body:document.getElementById('a_body').value,subject:document.getElementById('a_subject').value,branch:document.getElementById('a_branch').value,last:document.getElementById('a_last').value,next:document.getElementById('a_next').value,status:document.getElementById('a_status').value,updates:[],attachments:[]};
+  if(!a.subject) return alert('أدخل الموضوع');
+  data.authorities.push(a); saveData(); renderAll(); closeModal('authorityModal');
+  ['a_subject','a_branch','a_last','a_next'].forEach(id=>document.getElementById(id).value='');
+}
+function renderAuthorities(){
+  const tb=document.getElementById('authoritiesTable');
+  if(!data.authorities.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">لا توجد متابعات</td></tr>';return;}
+  tb.innerHTML=data.authorities.map(a=>`<tr><td><strong>${a.body}</strong></td><td>${a.subject}</td><td>${a.branch}</td><td>${a.last||'—'}</td><td>${a.next||'—'}</td><td>${badge(a.status)}</td><td>${updatesBtn('authorities',a.id,a)}${attachBtn('authorities',a.id,a)}<button class="action-btn" onclick="openEdit('authorities',${a.id})">✏️</button>${a.status!=='done'?`<button class="action-btn done-btn" onclick="markDoneWithNote('authorities',${a.id})" title="إنجاز">✅</button>`:undoBtn('authorities',a.id)}<button class="action-btn del" onclick="deleteItem('authorities',${a.id})">🗑️</button></td></tr>`).join('');
+}
+
+// ===== EMAILS =====
+function saveEmail(){
+  const e={
+    id:Date.now(),
+    subject:document.getElementById('e_subject').value,
+    from:document.getElementById('e_from').value,
+    date:document.getElementById('e_date').value,
+    replyDate:document.getElementById('e_replyDate').value,
+    replied:document.getElementById('e_replied').value,
+    note:document.getElementById('e_note').value,
+    updates:[],
+    attachments:[]
+  };
+  if(!e.from) return alert('أدخل المُرسِل');
+  data.emails.push(e); saveData(); renderAll(); closeModal('emailModal');
+  ['e_subject','e_from','e_date','e_replyDate','e_note'].forEach(id=>document.getElementById(id).value='');
+}
+function toggleReply(id){
+  const e=data.emails.find(x=>x.id===id);
+  if(!e) return;
+  e.replied=e.replied==='yes'?'no':'yes';
+  if(e.replied==='yes' && !e.replyDate) e.replyDate=new Date().toISOString().split('T')[0];
+  saveData(); renderAll();
+}
+function renderEmails(){
+  const el=document.getElementById('emailsList');
+  if(!data.emails.length){el.innerHTML='<div class="empty-state">لا توجد إيميلات</div>';return;}
+  el.innerHTML=data.emails.map(e=>{
+    const m={yes:['tag-yes','✅ تم الرد'],no:['tag-no','❌ لم يُرد'],waiting:['tag-waiting','⏳ انتظار']};
+    const [cls,lbl]=m[e.replied]||m.no;
+    const initial=(e.subject||e.from||'?').charAt(0);
+    return `<div class="email-item">
+      <div class="email-avatar">${initial}</div>
+      <div class="email-meta">
+        <div class="email-from">${e.subject||'(بدون موضوع)'}</div>
+        <div class="email-subject">من: ${e.from}</div>
+        <div class="email-time">📨 استلام: ${e.date||'—'}${e.replyDate?' · 📩 رد: '+e.replyDate:''}${e.note?' · '+e.note:''}</div>
+      </div>
+      <div class="email-status">
+        <span class="replied-tag ${cls}">${lbl}</span>
+        <button class="action-btn" onclick="toggleReply(${e.id})">🔄</button>
+        ${e.replied!=='yes'?`<button class="action-btn done-btn" onclick="markDoneWithNote('emails',${e.id})" title="تم الرد بتفصيل">✅</button>`:''}
+        ${updatesBtn('emails',e.id,e)}${attachBtn('emails',e.id,e)}
+        <button class="action-btn" onclick="openEdit('emails',${e.id})" title="تعديل">✏️</button>
+        <button class="action-btn del" onclick="deleteItem('emails',${e.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== POA =====
+function savePOA(){
+  const p={id:Date.now(),name:document.getElementById('p_name').value,dept:document.getElementById('p_dept').value,powers:document.getElementById('p_powers').value,issued:document.getElementById('p_issued').value,expiry:document.getElementById('p_expiry').value,status:document.getElementById('p_status').value,updates:[],attachments:[]};
+  if(!p.name) return alert('أدخل الاسم');
+  data.poas.push(p); saveData(); renderAll(); closeModal('poaModal');
+  ['p_name','p_dept','p_powers','p_issued','p_expiry'].forEach(id=>document.getElementById(id).value='');
+}
+function renderPOAs(){
+  const tb=document.getElementById('poaTable');
+  if(!data.poas.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">لا توجد تفويضات</td></tr>';return;}
+  tb.innerHTML=data.poas.map(p=>`<tr><td><strong>${p.name}</strong></td><td>${p.dept}</td><td style="font-size:11px;color:var(--muted)">${p.powers}</td><td>${p.issued||'—'}</td><td>${p.expiry||'—'}</td><td>${badge(p.status)}</td><td>${updatesBtn('poas',p.id,p)}${attachBtn('poas',p.id,p)}<button class="action-btn" onclick="openEdit('poas',${p.id})">✏️</button>${p.status!=='done'?`<button class="action-btn done-btn" onclick="markDoneWithNote('poas',${p.id})" title="إنجاز">✅</button>`:undoBtn('poas',p.id)}<button class="action-btn del" onclick="deleteItem('poas',${p.id})">🗑️</button></td></tr>`).join('');
+}
+
+// ===== INCIDENTS =====
+function saveIncident(){
+  const i={id:Date.now(),type:document.getElementById('i_type').value,branch:document.getElementById('i_branch').value,desc:document.getElementById('i_desc').value,date:document.getElementById('i_date').value,status:document.getElementById('i_status').value,updates:[],attachments:[]};
+  if(!i.desc) return alert('أدخل الوصف');
+  data.incidents.push(i); saveData(); renderAll(); closeModal('incidentModal');
+  ['i_branch','i_desc','i_date'].forEach(id=>document.getElementById(id).value='');
+}
+function renderIncidents(){
+  const tb=document.getElementById('incidentsTable');
+  if(!data.incidents.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">لا توجد محاضر</td></tr>';return;}
+  tb.innerHTML=data.incidents.map(i=>`<tr><td><strong>${i.type}</strong></td><td>${i.branch}</td><td style="font-size:11px">${i.desc}</td><td>${i.date||'—'}</td><td>${badge(i.status)}</td><td>${updatesBtn('incidents',i.id,i)}${attachBtn('incidents',i.id,i)}<button class="action-btn" onclick="openEdit('incidents',${i.id})">✏️</button>${i.status!=='done'?`<button class="action-btn done-btn" onclick="markDoneWithNote('incidents',${i.id})" title="إنجاز">✅</button>`:undoBtn('incidents',i.id)}<button class="action-btn del" onclick="deleteItem('incidents',${i.id})">🗑️</button></td></tr>`).join('');
+}
+
+// ===== DELETE with confirmation =====
+function deleteItem(arr, id){
+  const item = data[arr].find(x=>x.id===id);
+  const name = item ? (item.task||item.party1||item.name||item.subject||item.type||item.body||'هذا العنصر') : 'هذا العنصر';
+  if(!confirm(`⚠️ تأكيد الحذف\n\nهل أنت متأكد من حذف:\n"${name}" ؟\n\nلا يمكن التراجع عن هذا الإجراء.`)) return;
+  if(item && item.attachments && item.attachments.length){
+    item.attachments.forEach(a=>{ idbDeleteFile(a.fileId).catch(()=>{}); });
+  }
+  data[arr] = data[arr].filter(x=>x.id!==id);
+  saveData(); renderAll();
+}
+
+// ===== EDIT MODAL =====
+let editTarget = null; // {arr, id}
+
+function openEdit(arr, id){
+  editTarget = {arr, id};
+  const item = data[arr].find(x=>x.id===id);
+  if(!item) return;
+
+  const fields = getEditFields(arr, item);
+  document.getElementById('editModalTitle').textContent = '✏️ تعديل: ' + (item.task||item.party1||item.name||item.subject||item.type||item.body||'');
+  document.getElementById('editFields').innerHTML = fields;
+  openModal('editModal');
+}
+
+function getEditFields(arr, item){
+  const f = (label, id, val, type='text', opts=null) => {
+    if(opts){
+      const options = opts.map(([v,l])=>`<option value="${v}"${item[id]===v?' selected':''}>${l}</option>`).join('');
+      return `<div class="form-group"><label>${label}</label><select id="ef_${id}">${options}</select></div>`;
+    }
+    if(type==='textarea') return `<div class="form-group"><label>${label}</label><textarea id="ef_${id}" rows="2">${val||''}</textarea></div>`;
+    return `<div class="form-group"><label>${label}</label><input type="${type}" id="ef_${id}" value="${val||''}"></div>`;
+  };
+
+  const statusOpts = [['progress','جاري'],['pending','قيد المراجعة'],['done','منجز'],['urgent','عاجل'],['late','متأخر']];
+  const doneDateField = f('تاريخ الإنجاز الفعلي','doneDate',item.doneDate,'date');
+
+  const maps = {
+    lawyerTasks: ()=> f('اسم المحامي','name',item.name)+f('المهمة','task',item.task)+f('التفاصيل','details',item.details,'textarea')+f('تاريخ التكليف','assignDate',item.assignDate,'date')+f('الديدلاين','deadline',item.deadline,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    govermind:   ()=> f('المسؤول','name',item.name)+f('المهمة','task',item.task)+f('التفاصيل','details',item.details,'textarea')+f('تاريخ التكليف','assignDate',item.assignDate,'date')+f('الديدلاين','deadline',item.deadline,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    sevendays:   ()=> f('المسؤول','name',item.name)+f('المهمة','task',item.task)+f('التفاصيل','details',item.details,'textarea')+f('تاريخ التكليف','assignDate',item.assignDate,'date')+f('الديدلاين','deadline',item.deadline,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    contracts:   ()=> f('Subject Email','emailSubject',item.emailSubject)+f('موضوع الإيميل','emailTopic',item.emailTopic,'textarea')+f('الطرف الأول','party1',item.party1)+f('نوع العقد','type','','',['عقد إيجار','فسخ إيجار','عقد عمل','عقد توريد','ملحق تفاسخ','عقد توريد عمالة','عقد 3bl','أخرى'].map(x=>[x,x]))+f('تاريخ استلام الإيميل','workStartDate',item.workStartDate,'date')+f('الديدلاين','deadline',item.deadline,'date')+f('تاريخ الانجاز وارسال العقد اول مرة على الايميل','emailSentDate',item.emailSentDate,'date')+f('الحالة','status','','',statusOpts)+f('ملاحظات','notes',item.notes,'textarea'),
+    licenses:    ()=> f('اسم الفرع','name',item.name)+f('الموقع','location',item.location)+f('تاريخ الانتهاء','expiry',item.expiry,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    authorities: ()=> f('الجهة','body',item.body)+f('الموضوع','subject',item.subject)+f('الفرع','branch',item.branch)+f('آخر متابعة','last',item.last,'date')+f('الموعد القادم','next',item.next,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    emails:      ()=> f('Subject','subject',item.subject)+f('المُرسِل','from',item.from)+f('تاريخ الاستلام','date',item.date,'date')+f('تاريخ الرد','replyDate',item.replyDate,'date')+f('حالة الرد','replied','','',[['no','❌ لم يُرد'],['waiting','⏳ انتظار'],['yes','✅ تم الرد']])+f('ملاحظة','note',item.note,'textarea'),
+    poas:        ()=> f('المفوَّض','name',item.name)+f('الإدارة','dept',item.dept)+f('الصلاحيات','powers',item.powers,'textarea')+f('تاريخ الإصدار','issued',item.issued,'date')+f('تاريخ الانتهاء','expiry',item.expiry,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+    incidents:   ()=> f('الفرع','branch',item.branch)+f('الوصف','desc',item.desc,'textarea')+f('التاريخ','date',item.date,'date')+f('الحالة','status','','',statusOpts)+doneDateField,
+  };
+  return (maps[arr] || (()=>''))(item);
+}
+
+function saveEdit(){
+  if(!editTarget) return;
+  const {arr, id} = editTarget;
+  const item = data[arr].find(x=>x.id===id);
+  if(!item) return;
+
+  // Update all fields that exist in the form
+  document.querySelectorAll('#editFields [id^="ef_"]').forEach(el=>{
+    const key = el.id.replace('ef_','');
+    item[key] = el.value;
+  });
+
+  if(item.status==='done' && !item.doneDate){
+    item.doneDate = new Date().toISOString().split('T')[0];
+  }
+  if(arr==='contracts' && item.status==='done' && !item.emailSentDate){
+    item.emailSentDate = item.doneDate;
+  }
+
+  saveData(); renderAll(); closeModal('editModal');
+  editTarget = null;
+}
+
+
+
+// ===== CHARTS & OVERVIEW =====
+function getAllTasks(){
+  return [
+    ...data.contracts.map(x=>({...x,cat:'عقود'})),
+    ...data.licenses.map(x=>({...x,cat:'تراخيص'})),
+    ...data.authorities.map(x=>({...x,cat:'جهات حكومية'})),
+    ...data.poas.map(x=>({...x,cat:'تفويضات'})),
+    ...data.incidents.map(x=>({...x,cat:'محاضر'})),
+    ...data.lawyerTasks.map(x=>({...x,cat:'مهام محامين'})),
+    ...data.govermind.map(x=>({...x,cat:'مكتب Govermind'})),
+    ...data.sevendays.map(x=>({...x,cat:'مكتب 7Days'})),
+    ...data.emails.map(x=>({...x, cat:'إيميلات', task:x.subject, status: x.replied==='yes'?'done': x.replied==='waiting'?'progress':'pending', doneDate: x.replyDate||null }))
+  ];
+}
+
+function renderCharts(){
+  const all=getAllTasks();
+  const done=all.filter(x=>x.status==='done').length;
+  const progress=all.filter(x=>x.status==='progress').length;
+  const pending=all.filter(x=>x.status==='pending').length;
+  const urgent=all.filter(x=>x.status==='urgent').length;
+  const late=all.filter(x=>x.status==='late').length;
+  const total=all.length||1;
+
+  // Donut
+  const dCtx=document.getElementById('chartDonut').getContext('2d');
+  if(donutChart) donutChart.destroy();
+  donutChart=new Chart(dCtx,{
+    type:'doughnut',
+    data:{
+      labels:['منجز','جاري','قيد المراجعة','عاجل','متأخر'],
+      datasets:[{data:[done,progress,pending,urgent,late],backgroundColor:['#16a34a','#2563eb','#d97706','#dc2626','#9d174d'],borderWidth:2,borderColor:'#fff'}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Cairo',size:11},padding:8}}}}
+  });
+
+  // Bar - this week by category
+  const cats=['عقود','تراخيص','جهات حكومية','تفويضات','محاضر','مهام محامين','مكتب Govermind','مكتب 7Days'];
+  const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  const weekDone=cats.map(cat=>{
+    const catItems=getAllTasks().filter(x=>x.cat===cat);
+    return catItems.filter(x=>x.status==='done').length;
+  });
+  const weekTotal=cats.map(cat=>getAllTasks().filter(x=>x.cat===cat).length);
+
+  const bCtx=document.getElementById('chartBar').getContext('2d');
+  if(barChart) barChart.destroy();
+  barChart=new Chart(bCtx,{
+    type:'bar',
+    data:{
+      labels:['عقود','تراخيص','جهات','تفويضات','محاضر','محامين','Govermind','7Days'],
+      datasets:[
+        {label:'إجمالي',data:weekTotal,backgroundColor:'rgba(27,46,75,0.15)',borderRadius:6},
+        {label:'منجز',data:weekDone,backgroundColor:'rgba(22,163,74,0.8)',borderRadius:6}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Cairo',size:11},padding:8}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{family:'Cairo'}},grid:{color:'#f1f5f9'}},x:{ticks:{font:{family:'Cairo',size:10}},grid:{display:false}}}}
+  });
+}
+
+function renderProgress(){
+  const cats=[
+    {name:'عقود',icon:'📄',items:data.contracts},
+    {name:'تراخيص',icon:'🏢',items:data.licenses},
+    {name:'جهات حكومية',icon:'🏛️',items:data.authorities},
+    {name:'تفويضات',icon:'📋',items:data.poas},
+    {name:'محاضر',icon:'🚨',items:data.incidents},
+    {name:'مهام المحامين',icon:'👨‍💼',items:data.lawyerTasks},
+    {name:'مكتب Govermind',icon:'🏗️',items:data.govermind},
+    {name:'مكتب 7Days',icon:'📦',items:data.sevendays}
+  ];
+  const el=document.getElementById('progressSection');
+  el.innerHTML=cats.map(c=>{
+    const total=c.items.length;
+    const done=c.items.filter(x=>x.status==='done').length;
+    const late=c.items.filter(x=>x.status==='late'||x.status==='urgent').length;
+    const pct=total?Math.round(done/total*100):0;
+    const color=pct>=70?'var(--success)':pct>=40?'var(--warning)':'var(--danger)';
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;font-weight:600">${c.icon} ${c.name}</span>
+        <span style="display:flex;gap:12px;font-size:12px">
+          <span style="color:var(--muted)">الإجمالي: <strong>${total}</strong></span>
+          <span style="color:var(--success)">منجز: <strong>${done}</strong></span>
+          <span style="color:var(--danger)">متأخر/عاجل: <strong>${late}</strong></span>
+          <span style="color:${color};font-weight:900">${pct}%</span>
+        </span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverview(){
+  const all=getAllTasks();
+  const noReply=data.emails.filter(e=>e.replied==='no');
+  const urgentAll=all.filter(x=>x.status==='urgent');
+  const lateAll=all.filter(x=>x.status==='late');
+  const doneAll=all.filter(x=>x.status==='done');
+  const total=all.length;
+
+  document.getElementById('overviewStats').innerHTML=`
+    <div class="stat-card danger" onclick="showFilteredResults('emails-noreply')" style="cursor:pointer" title="اضغط لعرض الإيميلات">
+      <div class="stat-label">إيميلات بدون رد</div>
+      <div class="stat-num">${noReply.length}</div>
+      <div class="stat-sub">تحتاج متابعة فورية</div>
+      <div style="font-size:10px;color:#dc2626;margin-top:6px;font-weight:700">👆 اضغط للعرض</div>
+    </div>
+    <div class="stat-card success" onclick="showFilteredResults('done')" style="cursor:pointer" title="اضغط لعرض المنجز">
+      <div class="stat-label">إجمالي المنجز</div>
+      <div class="stat-num">${doneAll.length}</div>
+      <div class="stat-sub pct-green">من ${total} مهمة — ${total?Math.round(doneAll.length/total*100):0}%</div>
+      <div style="font-size:10px;color:#16a34a;margin-top:6px;font-weight:700">👆 اضغط للعرض</div>
+    </div>
+    <div class="stat-card warning" onclick="showFilteredResults('urgent')" style="cursor:pointer" title="اضغط لعرض العاجلة">
+      <div class="stat-label">مهام عاجلة</div>
+      <div class="stat-num">${urgentAll.length}</div>
+      <div class="stat-sub">تحتاج اهتمام فوري</div>
+      <div style="font-size:10px;color:#d97706;margin-top:6px;font-weight:700">👆 اضغط للعرض</div>
+    </div>
+    <div class="stat-card danger" onclick="showFilteredResults('late')" style="cursor:pointer" title="اضغط لعرض المتأخرة">
+      <div class="stat-label">مهام متأخرة</div>
+      <div class="stat-num">${lateAll.length}</div>
+      <div class="stat-sub">تجاوزت الديدلاين</div>
+      <div style="font-size:10px;color:#dc2626;margin-top:6px;font-weight:700">👆 اضغط للعرض</div>
+    </div>
+    <div class="stat-card info" onclick="showFilteredResults('lawyers')" style="cursor:pointer" title="اضغط لعرض مهام المحامين">
+      <div class="stat-label">محامون نشطون</div>
+      <div class="stat-num">${[...new Set(data.lawyerTasks.map(t=>t.name))].length}</div>
+      <div class="stat-sub">${data.lawyerTasks.length} مهمة مفوضة</div>
+      <div style="font-size:10px;color:#2563eb;margin-top:6px;font-weight:700">👆 اضغط للعرض</div>
+    </div>
+  `;
+
+  // Urgent emails preview
+  const urgEl=document.getElementById('urgentEmailsPreview');
+  urgEl.innerHTML=!noReply.length?'<div class="empty-state">🎉 كل الإيميلات تم الرد عليها!</div>':
+    noReply.slice(0,4).map(e=>`<div class="email-item">
+      <div class="email-avatar">${(e.subject||e.from||'?').charAt(0)}</div>
+      <div class="email-meta"><div class="email-from">${e.subject||'(بدون موضوع)'}</div><div class="email-subject">من: ${e.from}</div><div class="email-time">${e.date||'—'}</div></div>
+      <div class="email-status"><span class="replied-tag tag-no">❌ لم يُرد</span><button class="action-btn" onclick="toggleReply(${e.id})">✅ رد</button></div>
+    </div>`).join('');
+
+  // Urgent tasks preview
+  const urgTaskEl=document.getElementById('urgentTasksPreview');
+  const combined=[...urgentAll,...lateAll.filter(x=>!urgentAll.includes(x))];
+  urgTaskEl.innerHTML=!combined.length?'<div class="empty-state">✅ لا توجد مهام عاجلة</div>':
+    '<table><tbody>'+combined.slice(0,6).map(t=>`<tr>
+      <td><strong>${t.name||t.body||t.party1||t.task||'—'}</strong></td>
+      <td style="font-size:11px;color:var(--muted)">${t.cat||t.type||'—'}</td>
+      <td>${badge(t.status)}</td>
+    </tr>`).join('')+'</tbody></table>';
+
+  renderCharts();
+  renderProgress();
+}
+
+// ===== FILTERED RESULTS FROM STAT CARDS =====
+function closeFilterPanel(){
+  document.getElementById('filterPanel').style.display='none';
+}
+
+function catToArr(cat){
+  return cat==='عقود'?'contracts':cat==='تراخيص'?'licenses':cat==='جهات حكومية'?'authorities':cat==='تفويضات'?'poas':cat==='محاضر'?'incidents':cat==='مهام محامين'?'lawyerTasks':cat==='مكتب Govermind'?'govermind':cat==='مكتب 7Days'?'sevendays':'emails';
+}
+
+function showFilteredResults(type){
+  const panel = document.getElementById('filterPanel');
+  const title = document.getElementById('filterPanelTitle');
+  const body  = document.getElementById('filterPanelBody');
+  const all   = getAllTasks();
+
+  panel.style.display = 'block';
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+
+  // ── إيميلات بدون رد ──────────────────────────────────────
+  if(type === 'emails-noreply'){
+    const items = data.emails.filter(e=>e.replied==='no');
+    title.textContent = `📧 إيميلات بدون رد (${items.length})`;
+    if(!items.length){ body.innerHTML='<div class="empty-state">🎉 كل الإيميلات تم الرد عليها!</div>'; return; }
+    body.innerHTML = items.map(e=>`
+      <div class="email-item">
+        <div class="email-avatar">${(e.subject||e.from||'?').charAt(0)}</div>
+        <div class="email-meta">
+          <div class="email-from">${e.subject||'(بدون موضوع)'}</div>
+          <div class="email-subject">من: ${e.from}</div>
+          <div class="email-time">📨 ${e.date||'—'}${e.note?' · '+e.note:''}</div>
+        </div>
+        <div class="email-status">
+          <span class="replied-tag tag-no">❌ لم يُرد</span>
+          <button class="action-btn" onclick="toggleReply(${e.id});showFilteredResults('emails-noreply')">✅ رد</button>
+          <button class="action-btn" onclick="openEdit('emails',${e.id})">✏️</button>
+        </div>
+      </div>`).join('');
+    return;
+  }
+
+  // ── مهام المحامين ─────────────────────────────────────────
+  if(type === 'lawyers'){
+    const items = data.lawyerTasks.filter(t=>t.status!=='done');
+    title.textContent = `👨‍💼 مهام المحامين النشطة (${items.length})`;
+    if(!items.length){ body.innerHTML='<div class="empty-state">✅ كل المهام منجزة!</div>'; return; }
+    body.innerHTML = '<div class="table-scroll"><table><thead><tr><th>المحامي</th><th>المهمة</th><th>الديدلاين</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>' +
+      items.map(t=>{
+        const today=new Date(); today.setHours(0,0,0,0);
+        const diff=t.deadline?Math.floor((new Date(t.deadline)-today)/86400000):null;
+        const dl=t.deadline?(diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>':diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`):'—';
+        return `<tr><td><strong>${t.name}</strong></td><td>${t.task}</td><td>${dl}</td><td>${badge(t.status)}</td>
+          <td><button class="action-btn" onclick="openEdit('lawyerTasks',${t.id})">✏️</button>
+          <button class="action-btn done-btn" onclick="markLawyerDone(${t.id});showFilteredResults('lawyers')">✅</button></td></tr>`;
+      }).join('') + '</tbody></table></div>';
+    return;
+  }
+
+  // ── المنجز ────────────────────────────────────────────────
+  if(type === 'done'){
+    // FIX: filter by status==='done' directly (not 'منجز')
+    const items = all.filter(x=>x.status==='done');
+    title.textContent = `✅ إجمالي المنجز (${items.length})`;
+    if(!items.length){ body.innerHTML='<div class="empty-state">لا يوجد إنجازات مسجلة بعد</div>'; return; }
+    body.innerHTML = '<div class="table-scroll"><table><thead><tr><th>المهمة / الموضوع</th><th>القسم</th><th>تاريخ الإنجاز</th><th>تفاصيل الإنجاز</th></tr></thead><tbody>' +
+      items.map(t=>{
+        const name = t.task||t.party1||t.name||t.subject||t.type||t.body||'—';
+        const doneDate = t.doneDate ? new Date(t.doneDate).toLocaleDateString('ar-EG') : '—';
+        // آخر تحديث = ملاحظة الإنجاز
+        const lastUpd = (t.updates||[]).filter(u=>u.text && u.text!=='تم إنجاز المهمة').slice(-1)[0];
+        const detail = lastUpd ? lastUpd.text : (t.updates&&t.updates.length ? t.updates.slice(-1)[0].text : '—');
+        return `<tr>
+          <td><strong>${name}</strong></td>
+          <td><span style="font-size:11px;color:var(--muted)">${t.cat||'—'}</span></td>
+          <td style="font-size:12px;white-space:nowrap">${doneDate}</td>
+          <td style="font-size:12px;color:var(--muted)">${detail}</td>
+        </tr>`;
+      }).join('') + '</tbody></table></div>';
+    return;
+  }
+
+  // ── عاجل / متأخر ─────────────────────────────────────────
+  const labelMap = {
+    urgent: ['⚠️ المهام العاجلة', 'urgent'],
+    late:   ['⏰ المهام المتأخرة', 'late'],
+  };
+  const [panelTitle, statusVal] = labelMap[type] || ['النتائج', type];
+  const items = all.filter(x=>x.status===statusVal);
+  title.textContent = `${panelTitle} (${items.length})`;
+
+  if(!items.length){ body.innerHTML=`<div class="empty-state">✅ لا توجد مهام بهذه الحالة</div>`; return; }
+
+  body.innerHTML = '<div class="table-scroll"><table><thead><tr><th>المهمة / الموضوع</th><th>القسم</th><th>الديدلاين</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>' +
+    items.map(t=>{
+      const name = t.task||t.party1||t.name||t.subject||t.type||t.body||'—';
+      const today=new Date(); today.setHours(0,0,0,0);
+      const dl = t.deadline||t.expiry||t.next||'—';
+      const diff = dl!=='—' ? Math.floor((new Date(dl)-today)/86400000) : null;
+      const dlStr = dl==='—'?'—':(diff===0?'<span style="color:var(--warning);font-weight:700">اليوم!</span>':diff<0?`<span style="color:var(--danger);font-weight:700">تأخر ${Math.abs(diff)} يوم</span>`:`خلال ${diff} يوم`);
+      const arr = catToArr(t.cat);
+      return `<tr>
+        <td><strong>${name}</strong></td>
+        <td><span style="font-size:11px;color:var(--muted)">${t.cat||'—'}</span></td>
+        <td>${dlStr}</td>
+        <td>${badge(t.status)}</td>
+        <td><button class="action-btn" onclick="openEdit('${arr}',${t.id})">✏️</button></td>
+      </tr>`;
+    }).join('') + '</tbody></table></div>';
+}
+
+
+// ===== EXPORT / IMPORT =====
+function exportData(){
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toLocaleDateString('ar-EG').replace(/\//g,'-');
+  a.href = url;
+  a.download = `legal-dashboard-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const imported = JSON.parse(e.target.result);
+      // Validate it's our data
+      const keys = ['contracts','licenses','authorities','emails','poas','incidents','lawyerTasks'];
+      const valid = keys.some(k => Array.isArray(imported[k]));
+      if(!valid){ alert('❌ الملف مش صح — تأكد إنه ملف تصدير من الداشبورد'); return; }
+      if(!confirm(`✅ هيتم استيراد البيانات وتحل محل البيانات الحالية.\n\nمتأكد؟`)){ return; }
+      data = imported;
+      // Ensure all arrays exist
+      ALL_ARRAYS.forEach(k=>{ if(!Array.isArray(data[k])) data[k]=[]; });
+      if(!data.dailyLog || typeof data.dailyLog!=='object') data.dailyLog = {entries:[],picks:[]};
+      if(!Array.isArray(data.dailyLog.entries)) data.dailyLog.entries=[];
+      if(!Array.isArray(data.dailyLog.picks)) data.dailyLog.picks=[];
+      saveData();
+      renderAll();
+      alert('✅ تم الاستيراد بنجاح!');
+    } catch(err){
+      alert('❌ في مشكلة في قراءة الملف');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset input
+}
+
+
+
+function enableNotifications(){
+  if(typeof Notification==='undefined'){alert('المتصفح لا يدعم الإشعارات');return;}
+  Notification.requestPermission().then(p=>{
+    notifPermission=p;
+    if(p==='granted'){
+      document.getElementById('notifEnableBar').style.display='none';
+      new Notification('⚖️ لوحة المتابعة القانونية',{body:'تم تفعيل الإشعارات!'});
+    } else alert('اسمح بالإشعارات من إعدادات المتصفح');
+  });
+}
+
+function getAlerts(){
+  const alerts=[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  data.emails.forEach(e=>{ if(e.replied==='no'){ const d=e.date?Math.floor((today-new Date(e.date))/86400000):null; alerts.push({icon:'📧',text:`إيميل من "${e.from}" — "${e.subject}" لم يُرد`,sub:d!=null?`منذ ${d} يوم`:'',level:d>2?'urgent':'warn'}); }});
+  data.licenses.forEach(l=>{ if(l.expiry){const d=Math.floor((new Date(l.expiry)-today)/86400000);if(d<=30) alerts.push({icon:'🏢',text:`ترخيص "${l.name}" ${d<=0?'انتهى!':'ينتهي خلال '+d+' يوم'}`,sub:l.location,level:d<=7?'urgent':'warn'});}});
+  data.authorities.forEach(a=>{ if(a.next){const d=Math.floor((new Date(a.next)-today)/86400000);if(d>=0&&d<=7) alerts.push({icon:'🏛️',text:`موعد ${a.body} — ${d===0?'اليوم':'خلال '+d+' يوم'}`,sub:a.subject,level:d<=2?'urgent':'warn'});}});
+  data.poas.forEach(p=>{ if(p.expiry){const d=Math.floor((new Date(p.expiry)-today)/86400000);if(d<=14) alerts.push({icon:'📋',text:`تفويض "${p.name}" ${d<=0?'انتهى!':'ينتهي خلال '+d+' يوم'}`,sub:p.dept,level:d<=3?'urgent':'warn'});}});
+  data.incidents.filter(i=>i.status==='urgent').forEach(i=>alerts.push({icon:'🚨',text:`محضر عاجل: "${i.type}" — ${i.branch}`,sub:i.date||'',level:'urgent'}));
+  data.contracts.forEach(c=>{ if(c.deadline){const d=Math.floor((new Date(c.deadline)-today)/86400000);if(d>=0&&d<=7) alerts.push({icon:'📄',text:`عقد "${c.party1}" — ديدلاين ${d===0?'اليوم':'خلال '+d+' يوم'}`,sub:c.emailSubject||'',level:d<=2?'urgent':'warn'});}});
+  data.lawyerTasks.filter(t=>t.status==='late').forEach(t=>alerts.push({icon:'⏰',text:`مهمة متأخرة: "${t.task}" — ${t.name}`,sub:t.deadline||'',level:'urgent'}));
+  data.govermind.filter(t=>t.status==='late').forEach(t=>alerts.push({icon:'🏗️',text:`مهمة متأخرة (Govermind): "${t.task}" — ${t.name}`,sub:t.deadline||'',level:'urgent'}));
+  data.sevendays.filter(t=>t.status==='late').forEach(t=>alerts.push({icon:'📦',text:`مهمة متأخرة (7Days): "${t.task}" — ${t.name}`,sub:t.deadline||'',level:'urgent'}));
+  return alerts;
+}
+
+function renderNotifPanel(){
+  const alerts=getAlerts();
+  const badge=document.getElementById('notifBadge');
+  badge.style.display=alerts.length?'flex':'none';
+  badge.textContent=alerts.length;
+  const list=document.getElementById('notifList');
+  list.innerHTML=!alerts.length?'<div class="notif-empty">✅ كل حاجة تمام</div>':
+    alerts.map(a=>`<div class="notif-item"><span style="font-size:18px">${a.icon}</span><div><div>${a.text}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.sub}</div></div></div>`).join('');
+}
+
+function toggleNotifPanel(){
+  const p=document.getElementById('notifPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')) renderNotifPanel();
+}
+
+document.addEventListener('click',function(e){
+  const p=document.getElementById('notifPanel'),b=document.getElementById('notifBtn');
+  if(p&&p.classList.contains('open')&&!p.contains(e.target)&&!b.contains(e.target)) p.classList.remove('open');
+});
+
+if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+  const bar=document.getElementById('notifEnableBar');
+  if(bar) bar.style.display='none';
+}
+
+setInterval(()=>{ if(notifPermission==='granted'){ const a=getAlerts(); if(a.length){ const u=a.filter(x=>x.level==='urgent'); new Notification('⚖️ تنبيه قانوني',{body:u.length?u[0].text:`${a.length} تنبيه يحتاج متابعة`}); } } }, 3600000);
+
+// ===== REPORTS =====
+function buildReport(type){
+  const today = new Date();
+  today.setHours(23,59,59,999);
+  const todayStr = new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Cutoff: daily = start of today, weekly = 7 days ago
+  const cutoff = new Date();
+  if(type==='weekly') cutoff.setDate(cutoff.getDate()-7);
+  cutoff.setHours(0,0,0,0);
+
+  const all = getAllTasks();
+  const noReply = data.emails.filter(e=>e.replied==='no');
+  const alerts = getAlerts();
+
+  // ── فلترة المنجز حسب الفترة ──────────────────────────────
+  // المنجز في الفترة: doneDate أو آخر تحديث بيقع في الفترة
+  function donedInPeriod(x) {
+    if(x.status !== 'done') return false;
+    // جرّب doneDate الأول
+    if(x.doneDate) {
+      const d = new Date(x.doneDate); d.setHours(0,0,0,0);
+      if(d >= cutoff) return true;
+    }
+    // جرّب آخر update
+    const upds = x.updates||[];
+    if(upds.length) {
+      // التاريخ مخزون كـ string عربي — نقارن بـ id الزمن لو موجود
+      // نستخدم doneDate كـ fallback لو مفيش
+      return !!x.doneDate && new Date(x.doneDate) >= cutoff;
+    }
+    return false;
+  }
+
+  const doneInPeriod = all.filter(donedInPeriod);
+  const doneOld      = all.filter(x => x.status==='done' && !donedInPeriod(x));
+  const late         = all.filter(x => x.status==='late');
+  const urgent       = all.filter(x => x.status==='urgent');
+  const inProgress   = all.filter(x => x.status==='progress');
+
+  const periodLabel = type==='weekly' ? 'الأسبوع الحالي' : 'اليوم';
+  const title = type==='weekly' ? 'التقرير الأسبوعي' : 'التقرير اليومي';
+
+  let r = `⚖️ ${title} — لوحة المتابعة القانونية\n`;
+  r    += `📅 ${todayStr}\n`;
+  r    += `${'═'.repeat(40)}\n\n`;
+
+  // ── ملخص تنفيذي ──────────────────────────────────────────
+  r += `📊 الملخص التنفيذي:\n`;
+  r += `• إجمالي المهام: ${all.length}\n`;
+  r += `• المنجز في ${periodLabel}: ${doneInPeriod.length}\n`;
+  r += `• إجمالي المنجز: ${all.filter(x=>x.status==='done').length} (${all.length?Math.round(all.filter(x=>x.status==='done').length/all.length*100):0}%)\n`;
+  r += `• جاري التنفيذ: ${inProgress.length}\n`;
+  r += `• المتأخر: ${late.length}\n`;
+  r += `• العاجل: ${urgent.length}\n`;
+  r += `• إيميلات بدون رد: ${noReply.length}\n\n`;
+
+  // ── المنجز في الفترة (الأهم) ─────────────────────────────
+  if(doneInPeriod.length){
+    r += `✅ المنجز في ${periodLabel} (${doneInPeriod.length} مهمة):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    doneInPeriod.forEach((x,i)=>{
+      const name = x.task||x.party1||x.name||x.subject||x.type||'—';
+      const cat  = x.cat ? ` [${x.cat}]` : '';
+      const date = x.doneDate ? ` — بتاريخ: ${new Date(x.doneDate).toLocaleDateString('ar-EG')}` : '';
+      r += `${i+1}. ${name}${cat}${date}\n`;
+      // كل التحديثات على المهمة دي
+      const upds = (x.updates||[]);
+      if(upds.length){
+        upds.forEach(u=>{ r += `   📝 ${u.date}: ${u.text}\n`; });
+      }
+    });
+    r += '\n';
+  } else {
+    r += `✅ المنجز في ${periodLabel}: لا يوجد إنجازات مسجلة في هذه الفترة\n\n`;
+  }
+
+  // ── جاري التنفيذ ─────────────────────────────────────────
+  if(inProgress.length){
+    r += `🔄 جاري التنفيذ (${inProgress.length} مهمة):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    inProgress.forEach((x,i)=>{
+      const name = x.task||x.party1||x.name||x.subject||x.type||'—';
+      const cat  = x.cat ? ` [${x.cat}]` : '';
+      r += `${i+1}. ${name}${cat}\n`;
+      // آخر تحديث فقط
+      const lastUpd = (x.updates||[]).slice(-1)[0];
+      if(lastUpd) r += `   📝 آخر تحديث: ${lastUpd.text}\n`;
+    });
+    r += '\n';
+  }
+
+  // ── المتأخرات ─────────────────────────────────────────────
+  if(late.length){
+    r += `⏰ المتأخرات (${late.length} مهمة):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    late.forEach((x,i)=>{
+      const name = x.task||x.party1||x.name||x.subject||'—';
+      const dl   = x.deadline||x.expiry||'—';
+      const today0 = new Date(); today0.setHours(0,0,0,0);
+      const days = dl!=='—' ? Math.floor((today0-new Date(dl))/86400000) : null;
+      r += `${i+1}. ${name} — ديدلاين: ${dl}${days?` (تأخر ${days} يوم)`:''}\n`;
+    });
+    r += '\n';
+  }
+
+  // ── إيميلات بدون رد ──────────────────────────────────────
+  if(noReply.length){
+    r += `📧 إيميلات تحتاج رد (${noReply.length}):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    noReply.forEach((e,i)=>{ r += `${i+1}. من: ${e.from} — ${e.subject} (${e.date||'—'})\n`; });
+    r += '\n';
+  }
+
+  // ── تنبيهات ──────────────────────────────────────────────
+  if(alerts.length){
+    r += `⚠️ تنبيهات (${alerts.length}):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    alerts.forEach((a,i)=>{ r += `${i+1}. ${a.icon} ${a.text}\n`; });
+    r += '\n';
+  }
+
+  // ── منجز قديم (للأسبوعي فقط) ────────────────────────────
+  if(type==='weekly' && doneOld.length){
+    r += `📦 منجز سابق (خارج الأسبوع):\n`;
+    r += `${'─'.repeat(30)}\n`;
+    doneOld.forEach((x,i)=>{
+      const name = x.task||x.party1||x.name||x.subject||x.type||'—';
+      r += `${i+1}. ${name} [${x.cat||''}]\n`;
+    });
+    r += '\n';
+  }
+
+  r += `${'═'.repeat(40)}\n`;
+  r += `تم التوليد: ${new Date().toLocaleString('ar-EG')} ⚖️`;
+  return r;
+}
+
+function generateReport(type){
+  lastReport=buildReport(type);
+  const prev=document.getElementById('reportPreview');
+  prev.textContent=lastReport;
+  prev.style.display='block';
+  navigator.clipboard.writeText(lastReport).then(()=>{
+    const btn=document.querySelector('.btn-copy');
+    const orig=btn.innerHTML; btn.innerHTML='✅ تم النسخ!';
+    setTimeout(()=>btn.innerHTML=orig,2000);
+  }).catch(()=>{});
+}
+
+function sendWhatsApp(){
+  if(!lastReport) lastReport=buildReport('daily');
+  window.open(`https://wa.me/?text=${encodeURIComponent(lastReport)}`,'_blank');
+}
+
+// ===== RENDER ALL =====
+function renderAll(){
+  renderContracts();
+  renderLicenses();
+  renderAuthorities();
+  renderEmails();
+  renderPOAs();
+  renderIncidents();
+  renderLawyerTasks();
+  renderGovermindTasks();
+  renderSevendaysTasks();
+  renderOverview();
+  renderNotifPanel();
+  renderPicks();
+  renderPendingPool();
+  renderDailyLog();
+}
+
+renderAll();
+</script>
+</body>
+</html>
